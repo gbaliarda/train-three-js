@@ -48,6 +48,59 @@ water.position.y = -5
 terrain.rotation.x = -Math.PI / 2
 water.rotation.x = -Math.PI / 2
 
+const arcGeometry = new THREE.TorusGeometry( 4, 2, 16, 100, Math.PI ); 
+const arcMaterial = new THREE.MeshBasicMaterial( { color: 0x7d1d00 } ); 
+const torus = new THREE.Mesh( arcGeometry, arcMaterial ); 
+scene.add( torus );
+torus.position.y = 11
+
+const arcCollumnBoxGeometry = new THREE.BoxGeometry( 4, 10, 4 );
+const arcTopBoxGeometry = new THREE.BoxGeometry( 12, 3, 4 );
+const arcBoxMaterial = new THREE.MeshBasicMaterial( {color: 0x7d1d00} ); 
+const leftArcColumn = new THREE.Mesh( arcCollumnBoxGeometry, arcBoxMaterial ); 
+const rightArcColumn = new THREE.Mesh( arcCollumnBoxGeometry, arcBoxMaterial );
+const topArcBox = new THREE.Mesh( arcTopBoxGeometry, arcBoxMaterial );
+scene.add(leftArcColumn);
+scene.add(rightArcColumn);
+scene.add(topArcBox)
+leftArcColumn.position.y = 11
+leftArcColumn.position.x = -4
+rightArcColumn.position.y = 11
+rightArcColumn.position.x = 4
+topArcBox.position.y = 15
+
+const arcGroup = new THREE.Group();
+
+arcGroup.add(torus);
+
+arcGroup.add(leftArcColumn);
+arcGroup.add(rightArcColumn);
+arcGroup.add(topArcBox);
+
+scene.add(arcGroup);
+
+arcGroup.position.y = -16;
+arcGroup.position.z = 4 
+arcGroup.position.x = 70;
+
+const arcGroup2 = arcGroup.clone();
+scene.add(arcGroup2);
+arcGroup2.position.y = -16;
+arcGroup2.position.z = 4 
+arcGroup2.position.x = 80;
+
+const arcGroup3 = arcGroup.clone();
+scene.add(arcGroup3);
+arcGroup3.position.y = -16;
+arcGroup3.position.z = 4 
+arcGroup3.position.x = 90;
+
+const arcGroup4 = arcGroup.clone();
+scene.add(arcGroup4);
+arcGroup4.position.y = -16;
+arcGroup4.position.z = 4 
+arcGroup4.position.x = 100;
+
 
 const tunnelShape = new THREE.Shape();
 tunnelShape.lineTo(0, 0.5); 
@@ -73,9 +126,9 @@ scene.add(tunnel)
 
 let points = [];
 points.push(new THREE.Vector3(0, 1, 0));
-points.push(new THREE.Vector3(100 * TRAIL_SCALE, 1, 0)); 
-points.push(new THREE.Vector3(120 * TRAIL_SCALE, 1, -20 * TRAIL_SCALE)); 
-points.push(new THREE.Vector3(120 * TRAIL_SCALE, 1, -140 * TRAIL_SCALE));
+points.push(new THREE.Vector3(120 * TRAIL_SCALE, 1, 0)); 
+points.push(new THREE.Vector3(140 * TRAIL_SCALE, 1, -20 * TRAIL_SCALE)); 
+points.push(new THREE.Vector3(140 * TRAIL_SCALE, 1, -140 * TRAIL_SCALE));
 points.push(new THREE.Vector3(100 * TRAIL_SCALE, 1, -160 * TRAIL_SCALE));
 points.push(new THREE.Vector3(20 * TRAIL_SCALE, 1, -160 * TRAIL_SCALE));
 points.push(new THREE.Vector3(-40 * TRAIL_SCALE, 1, -180 * TRAIL_SCALE));
