@@ -3,7 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 // import image from './public/test.png'
 
 // Constants
-const WATER_COLOR = 0x90e0ef
+const WATER_COLOR = 0x42a5b8
 const TRAIL_SCALE = 1
 const TRAIN_SPEED = 60
 const GRASS_COLOR = 0x00e335
@@ -49,7 +49,29 @@ terrain.rotation.x = -Math.PI / 2
 water.rotation.x = -Math.PI / 2
 
 
-var points = [];
+const tunnelShape = new THREE.Shape();
+tunnelShape.lineTo(0, 0.5); 
+tunnelShape.lineTo(-10, 0.5);
+tunnelShape.lineTo(-13, 6);
+tunnelShape.lineTo(-10, 12);
+tunnelShape.lineTo(0, 12);
+tunnelShape.lineTo(0, 12.5);
+tunnelShape.lineTo(-10.5, 12.5);
+tunnelShape.lineTo(-14, 6);
+tunnelShape.lineTo(-10.5, 0);
+tunnelShape.lineTo(0, 0);
+
+let tunnelPoints = [];
+tunnelPoints.push(new THREE.Vector3(-131 * TRAIL_SCALE, 1, -130 * TRAIL_SCALE));
+tunnelPoints.push(new THREE.Vector3(-131 * TRAIL_SCALE, 1, -80 * TRAIL_SCALE));
+
+const tunnelCurve = new THREE.CatmullRomCurve3(tunnelPoints);
+const tunnelGeometry = new THREE.ExtrudeGeometry([tunnelShape], { steps: 100, bevelEnabled: false, extrudePath: tunnelCurve });
+const tunnelMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+const tunnel = new THREE.Mesh(tunnelGeometry, tunnelMaterial);
+scene.add(tunnel)
+
+let points = [];
 points.push(new THREE.Vector3(0, 1, 0));
 points.push(new THREE.Vector3(100 * TRAIL_SCALE, 1, 0)); 
 points.push(new THREE.Vector3(120 * TRAIL_SCALE, 1, -20 * TRAIL_SCALE)); 
