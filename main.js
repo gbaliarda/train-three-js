@@ -1,12 +1,10 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { createBridge, createTerrain, createTrail, getTrailCurve } from './terrain';
 // import image from './public/test.png'
 
-// Constants
-const WATER_COLOR = 0x42a5b8
-const TRAIL_SCALE = 1
 const TRAIN_SPEED = 60
-const GRASS_COLOR = 0x00e335
+const TRAIN_WIDTH = 5
 
 // Initialize Scene
 const scene = new THREE.Scene();
@@ -24,173 +22,214 @@ const light = new THREE.DirectionalLight(0xffffff, 1.0)
 light.castShadow = true;
 scene.add(light)
 
-const loader = new THREE.TextureLoader();
-const heightmap = loader.load('test.png');
-const terrainSize = 500;
+createBridge(scene, new THREE.Vector3(70, -16, 4))
 
-// Crear la geometría del terreno
-const terrainGeometry = new THREE.PlaneGeometry(terrainSize, terrainSize, 128, 128);
-const waterGeometry = new THREE.PlaneGeometry(terrainSize, terrainSize, 128, 128);
-
-
-// Crear el material del terreno
-const terrainMaterial = new THREE.MeshStandardMaterial({ color: GRASS_COLOR, map: heightmap, displacementMap: heightmap, displacementScale: 40, wireframe: false });
-const waterMaterial = new THREE.MeshBasicMaterial({ color: WATER_COLOR });
-
-
-const terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
-const water = new THREE.Mesh(waterGeometry, waterMaterial);
-
-scene.add(terrain);
-scene.add(water);
-terrain.position.y = -14
-water.position.y = -5
-terrain.rotation.x = -Math.PI / 2
-water.rotation.x = -Math.PI / 2
-
-const arcGeometry = new THREE.TorusGeometry( 4, 2, 16, 100, Math.PI ); 
-const arcMaterial = new THREE.MeshBasicMaterial( { color: 0x7d1d00 } ); 
-const torus = new THREE.Mesh( arcGeometry, arcMaterial ); 
-scene.add( torus );
-torus.position.y = 11
-
-const arcCollumnBoxGeometry = new THREE.BoxGeometry( 4, 10, 4 );
-const arcTopBoxGeometry = new THREE.BoxGeometry( 12, 3, 4 );
-const arcBoxMaterial = new THREE.MeshBasicMaterial( {color: 0x7d1d00} ); 
-const leftArcColumn = new THREE.Mesh( arcCollumnBoxGeometry, arcBoxMaterial ); 
-const rightArcColumn = new THREE.Mesh( arcCollumnBoxGeometry, arcBoxMaterial );
-const topArcBox = new THREE.Mesh( arcTopBoxGeometry, arcBoxMaterial );
-scene.add(leftArcColumn);
-scene.add(rightArcColumn);
-scene.add(topArcBox)
-leftArcColumn.position.y = 11
-leftArcColumn.position.x = -4
-rightArcColumn.position.y = 11
-rightArcColumn.position.x = 4
-topArcBox.position.y = 15
-
-const arcGroup = new THREE.Group();
-
-arcGroup.add(torus);
-
-arcGroup.add(leftArcColumn);
-arcGroup.add(rightArcColumn);
-arcGroup.add(topArcBox);
-
-scene.add(arcGroup);
-
-arcGroup.position.y = -16;
-arcGroup.position.z = 4 
-arcGroup.position.x = 70;
-
-const arcGroup2 = arcGroup.clone();
-scene.add(arcGroup2);
-arcGroup2.position.y = -16;
-arcGroup2.position.z = 4 
-arcGroup2.position.x = 80;
-
-const arcGroup3 = arcGroup.clone();
-scene.add(arcGroup3);
-arcGroup3.position.y = -16;
-arcGroup3.position.z = 4 
-arcGroup3.position.x = 90;
-
-const arcGroup4 = arcGroup.clone();
-scene.add(arcGroup4);
-arcGroup4.position.y = -16;
-arcGroup4.position.z = 4 
-arcGroup4.position.x = 100;
-
-
-const tunnelShape = new THREE.Shape();
-tunnelShape.lineTo(0, 0.5); 
-tunnelShape.lineTo(-10, 0.5);
-tunnelShape.lineTo(-13, 6);
-tunnelShape.lineTo(-10, 12);
-tunnelShape.lineTo(0, 12);
-tunnelShape.lineTo(0, 12.5);
-tunnelShape.lineTo(-10.5, 12.5);
-tunnelShape.lineTo(-14, 6);
-tunnelShape.lineTo(-10.5, 0);
-tunnelShape.lineTo(0, 0);
-
-let tunnelPoints = [];
-tunnelPoints.push(new THREE.Vector3(-131 * TRAIL_SCALE, 1, -130 * TRAIL_SCALE));
-tunnelPoints.push(new THREE.Vector3(-131 * TRAIL_SCALE, 1, -80 * TRAIL_SCALE));
-
-const tunnelCurve = new THREE.CatmullRomCurve3(tunnelPoints);
-const tunnelGeometry = new THREE.ExtrudeGeometry([tunnelShape], { steps: 100, bevelEnabled: false, extrudePath: tunnelCurve });
-const tunnelMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-const tunnel = new THREE.Mesh(tunnelGeometry, tunnelMaterial);
-scene.add(tunnel)
-
-let points = [];
-points.push(new THREE.Vector3(0, 1, 0));
-points.push(new THREE.Vector3(120 * TRAIL_SCALE, 1, 0)); 
-points.push(new THREE.Vector3(140 * TRAIL_SCALE, 1, -20 * TRAIL_SCALE)); 
-points.push(new THREE.Vector3(140 * TRAIL_SCALE, 1, -140 * TRAIL_SCALE));
-points.push(new THREE.Vector3(100 * TRAIL_SCALE, 1, -160 * TRAIL_SCALE));
-points.push(new THREE.Vector3(20 * TRAIL_SCALE, 1, -160 * TRAIL_SCALE));
-points.push(new THREE.Vector3(-40 * TRAIL_SCALE, 1, -180 * TRAIL_SCALE));
-points.push(new THREE.Vector3(-100 * TRAIL_SCALE, 1, -180 * TRAIL_SCALE));
-points.push(new THREE.Vector3(-120 * TRAIL_SCALE, 1, -160 * TRAIL_SCALE));
-points.push(new THREE.Vector3(-120 * TRAIL_SCALE, 1, -40 * TRAIL_SCALE));
-points.push(new THREE.Vector3(-100 * TRAIL_SCALE, 1, -20 * TRAIL_SCALE));
-points.push(new THREE.Vector3(-50 * TRAIL_SCALE, 1, -20 * TRAIL_SCALE));
-points.push(new THREE.Vector3(-5, 1, 0));
-points.push(new THREE.Vector3(0, 1, 0));
-
-const curve = new THREE.CatmullRomCurve3(points);
-const trackShape = new THREE.Shape();
-
-trackShape.lineTo(0, 1.5); 
-trackShape.lineTo(2, 3); 
-trackShape.lineTo(2, -3);
-trackShape.lineTo(0, -1.5);
-
-
-const leftRailShape = new THREE.Shape();
-leftRailShape.moveTo(0, -0.5);
-leftRailShape.lineTo(0.5, -0.5); 
-leftRailShape.lineTo(0.5, -0.75);
-leftRailShape.lineTo(0, -0.75);
-leftRailShape.lineTo(0, -0.5);
-
-const rightRailShape = new THREE.Shape();
-const distanciaY = 1;
-rightRailShape.moveTo(0, distanciaY - 0.25);
-rightRailShape.lineTo(0.5, distanciaY - 0.25); 
-rightRailShape.lineTo(0.5, distanciaY - 0.5); 
-rightRailShape.lineTo(0, distanciaY - 0.5);
-rightRailShape.lineTo(0, distanciaY - 0.25);
-
-const extrudeSettings = {
-    steps: 100,
-    bevelEnabled: false,
-    extrudePath: curve
-};
-
-const trackGeometry = new THREE.ExtrudeGeometry([trackShape], extrudeSettings);
-const railGeometry = new THREE.ExtrudeGeometry([leftRailShape, rightRailShape], extrudeSettings);
-const trackMaterial = new THREE.MeshStandardMaterial({ color: 0x7d1d00 });
-const railMaterial = new THREE.MeshStandardMaterial({ color: 0x1c1c1c });
-const track = new THREE.Mesh(trackGeometry, trackMaterial);
-const rail = new THREE.Mesh(railGeometry, railMaterial);
-track.position.y += 1
-rail.position.y += 1.25
-
-scene.add(track);
-scene.add(rail);
+const trailCurve = getTrailCurve(scene)
 
 const trainGeometry = new THREE.BoxGeometry(6, 10, 6)
 const trainMaterial = new THREE.MeshStandardMaterial( {color: 0x000000 } ); 
+const textureLoader = new THREE.TextureLoader();
+const wheelTexture = textureLoader.load('train_wheel.png');
+const trainWheelMaterial = new THREE.MeshBasicMaterial( {map: wheelTexture } ); 
+const trainWheelBarMaterial = new THREE.MeshStandardMaterial( {color: 0x888888 } ); 
 const train = new THREE.Mesh( trainGeometry, trainMaterial ); 
-scene.add( train );
+//scene.add( train );
+
+const trainFrontCylinder = new THREE.CylinderGeometry( TRAIN_WIDTH / 2, TRAIN_WIDTH / 2, 6, 32 );
+const trainFrontCylinder2 = new THREE.CylinderGeometry( TRAIN_WIDTH / 2 + 0.5, TRAIN_WIDTH / 2 + 0.5, 1, 32 );
+const trainFrontCylinderMesh = new THREE.Mesh( trainFrontCylinder, trainMaterial ); 
+const trainFrontCylinderMesh2 = new THREE.Mesh( trainFrontCylinder2, trainMaterial ); 
+scene.add( trainFrontCylinderMesh );
+scene.add( trainFrontCylinderMesh2 );
+
+trainFrontCylinderMesh.position.y = 5
+trainFrontCylinderMesh.rotation.z = Math.PI / 2
+trainFrontCylinderMesh.position.x += 3
+trainFrontCylinderMesh2.position.x += 6
+trainFrontCylinderMesh2.position.y = 5
+trainFrontCylinderMesh2.rotation.z = Math.PI / 2
+
+const trainCabinLowerPlate = new THREE.BoxGeometry( TRAIN_WIDTH, TRAIN_WIDTH, 0.5);
+const trainCabinFloor = new THREE.BoxGeometry( TRAIN_WIDTH * 2, TRAIN_WIDTH, 0.25);
+const trainCabinFloorPlate = new THREE.BoxGeometry( TRAIN_WIDTH, 2, 0.75);
+const trainCabinFloorBar = new THREE.BoxGeometry( TRAIN_WIDTH + TRAIN_WIDTH / 2, 1, 0.75);
+const trainCabinRoof = new THREE.BoxGeometry( TRAIN_WIDTH + 1, TRAIN_WIDTH + 1, 0.5);
+const trainCabinCollumn = new THREE.CylinderGeometry( 0.25, 0.25, 8, 32 );
+const trainWheel = new THREE.CylinderGeometry( 1, 1, 0.5);
+const trainWheelBar = new THREE.CylinderGeometry( 0.17, 0.17, 6.5);
+const trainWheelBarEnd = new THREE.CylinderGeometry( 0.3, 0.3, 1.5);
+const trainChimney = new THREE.CylinderGeometry( 0.35, 0.35, 2.5);
+const trainCabinLowerPlateMesh = new THREE.Mesh( trainCabinLowerPlate, trainMaterial);
+const trainCabinLowerPlateMesh2 = new THREE.Mesh( trainCabinLowerPlate, trainMaterial);
+const trainCabinLowerPlateMesh3 = new THREE.Mesh( trainCabinLowerPlate, trainMaterial);
+const trainCabinCollumnMesh = new THREE.Mesh( trainCabinCollumn, trainMaterial);
+const trainCabinCollumnMesh2 = new THREE.Mesh( trainCabinCollumn, trainMaterial);
+const trainCabinCollumnMesh3 = new THREE.Mesh( trainCabinCollumn, trainMaterial);
+const trainCabinCollumnMesh4 = new THREE.Mesh( trainCabinCollumn, trainMaterial);
+const trainCabinRoofMesh = new THREE.Mesh( trainCabinRoof, trainMaterial);
+const trainCabinFloorMesh = new THREE.Mesh( trainCabinFloor, trainMaterial);
+const trainCabinFloorPlateMesh = new THREE.Mesh( trainCabinFloorPlate, trainMaterial);
+const trainCabinFloorBarMesh = new THREE.Mesh( trainCabinFloorBar, trainMaterial);
+const trainCabinFloorPlateMesh2 = new THREE.Mesh( trainCabinFloorPlate, trainMaterial);
+const trainCabinFloorBarMesh2 = new THREE.Mesh( trainCabinFloorBar, trainMaterial);
+const trainRightWheelMesh = new THREE.Mesh( trainWheel, trainWheelMaterial);
+const trainRightWheelMesh2 = new THREE.Mesh( trainWheel, trainWheelMaterial);
+const trainRightWheelMesh3 = new THREE.Mesh( trainWheel, trainWheelMaterial);
+const trainLeftWheelMesh = new THREE.Mesh( trainWheel, trainWheelMaterial);
+const trainLeftWheelMesh2 = new THREE.Mesh( trainWheel, trainWheelMaterial);
+const trainLeftWheelMesh3 = new THREE.Mesh( trainWheel, trainWheelMaterial);
+const trainRightWheelBarMesh = new THREE.Mesh( trainWheelBar, trainWheelBarMaterial);
+const trainRightWheelBarEndMesh = new THREE.Mesh( trainWheelBarEnd, trainWheelBarMaterial);
+const trainLeftWheelBarMesh = new THREE.Mesh( trainWheelBar, trainWheelBarMaterial);
+const trainLeftWheelBarEndMesh = new THREE.Mesh( trainWheelBarEnd, trainWheelBarMaterial);
+const trainChimneyMesh = new THREE.Mesh( trainChimney, trainMaterial);
+trainCabinLowerPlateMesh.position.y = 5
+trainCabinLowerPlateMesh.position.z += TRAIN_WIDTH / 2
+trainCabinLowerPlateMesh.position.x += -2
+trainCabinLowerPlateMesh2.position.y = 5
+trainCabinLowerPlateMesh2.position.x += 0
+trainCabinLowerPlateMesh2.rotation.y = Math.PI / 2
+trainCabinLowerPlateMesh3.position.y = 5
+trainCabinLowerPlateMesh3.position.z -= TRAIN_WIDTH / 2
+trainCabinLowerPlateMesh3.position.x += -2
+trainCabinCollumnMesh.position.z -= TRAIN_WIDTH / 2
+trainCabinCollumnMesh.position.y = 5
+trainCabinCollumnMesh.position.y += 2
+trainCabinCollumnMesh.position.x += 0
+
+trainCabinCollumnMesh2.position.z -= TRAIN_WIDTH / 2
+trainCabinCollumnMesh2.position.y = 5
+trainCabinCollumnMesh2.position.y += 2
+trainCabinCollumnMesh2.position.x += -4
+
+trainCabinCollumnMesh3.position.z += TRAIN_WIDTH / 2
+trainCabinCollumnMesh3.position.y = 5
+trainCabinCollumnMesh3.position.y += 2
+trainCabinCollumnMesh3.position.x += 0
+
+trainCabinCollumnMesh4.position.z += TRAIN_WIDTH / 2
+trainCabinCollumnMesh4.position.y = 5
+trainCabinCollumnMesh4.position.y += 2
+trainCabinCollumnMesh4.position.x += -4
+
+trainCabinRoofMesh.position.y = 11
+trainCabinRoofMesh.position.x += -2
+trainCabinRoofMesh.rotation.x = Math.PI / 2
+
+trainCabinFloorMesh.position.y = 3
+trainCabinFloorMesh.rotation.x = Math.PI / 2
+trainCabinFloorMesh.position.x += 0.5
+
+trainCabinFloorPlateMesh.position.y = 3
+trainCabinFloorPlateMesh.position.z += TRAIN_WIDTH / 2 + 0.25
+trainCabinFloorPlateMesh.position.x += -2
+
+trainCabinFloorBarMesh.position.y = 3
+trainCabinFloorBarMesh.position.z += TRAIN_WIDTH / 2 + 0.25
+trainCabinFloorBarMesh.position.x += 0.5
+
+trainCabinFloorPlateMesh2.position.y = 3
+trainCabinFloorPlateMesh2.position.z -= TRAIN_WIDTH / 2 + 0.25
+trainCabinFloorPlateMesh2.position.x += -2
+
+trainCabinFloorBarMesh2.position.y = 3
+trainCabinFloorBarMesh2.position.z -= TRAIN_WIDTH / 2 + 0.25
+trainCabinFloorBarMesh2.position.x += 2.5
+
+trainRightWheelMesh.position.y = 2
+trainRightWheelMesh.position.z += TRAIN_WIDTH / 2 - 1
+trainRightWheelMesh.rotation.x = Math.PI / 2
+trainRightWheelMesh.position.x += 3
+
+trainRightWheelMesh2.position.y = 2
+trainRightWheelMesh2.position.z += TRAIN_WIDTH / 2 - 1
+trainRightWheelMesh2.rotation.x = Math.PI / 2
+trainRightWheelMesh2.position.x += 0.75
+
+trainRightWheelMesh3.position.y = 2
+trainRightWheelMesh3.position.z += TRAIN_WIDTH / 2 - 1
+trainRightWheelMesh3.rotation.x = Math.PI / 2
+trainRightWheelMesh3.position.x += -1.5
+
+trainLeftWheelMesh.position.y = 2
+trainLeftWheelMesh.position.z -= TRAIN_WIDTH / 2 - 1
+trainLeftWheelMesh.rotation.x = Math.PI / 2
+trainLeftWheelMesh.position.x += 1
+
+trainLeftWheelMesh2.position.y = 2
+trainLeftWheelMesh2.position.z -= TRAIN_WIDTH / 2 - 1
+trainLeftWheelMesh2.rotation.x = Math.PI / 2
+trainLeftWheelMesh2.position.x += 0.75
+
+trainLeftWheelMesh3.position.y = 2
+trainLeftWheelMesh3.position.z -= TRAIN_WIDTH / 2 - 1
+trainLeftWheelMesh3.rotation.x = Math.PI / 2
+trainLeftWheelMesh3.position.x += -1.5
+
+trainRightWheelBarMesh.position.y = 2
+trainRightWheelBarMesh.position.z += TRAIN_WIDTH / 2 - 0.5
+trainRightWheelBarMesh.position.x += 1
+trainRightWheelBarMesh.rotation.z = Math.PI / 2
+
+trainRightWheelBarEndMesh.position.y = 2
+trainRightWheelBarEndMesh.position.z += TRAIN_WIDTH / 2 - 0.5
+trainRightWheelBarEndMesh.position.x += 5
+trainRightWheelBarEndMesh.rotation.z = Math.PI / 2
+
+trainLeftWheelBarMesh.position.y = 2
+trainLeftWheelBarMesh.position.z -= TRAIN_WIDTH / 2 - 0.5
+trainLeftWheelBarMesh.position.x += 1
+trainLeftWheelBarMesh.rotation.z = Math.PI / 2
+
+trainLeftWheelBarEndMesh.position.y = 2
+trainLeftWheelBarEndMesh.position.z -= TRAIN_WIDTH / 2 - 0.5
+trainLeftWheelBarEndMesh.position.x += 5
+trainLeftWheelBarEndMesh.rotation.z = Math.PI / 2
+
+trainChimneyMesh.position.y = 8.75
+trainChimneyMesh.position.x += 6
+
+const train2 = new THREE.Group();
+train2.add(trainFrontCylinderMesh)
+train2.add(trainFrontCylinderMesh2)
+train2.add(trainCabinLowerPlateMesh)
+train2.add(trainCabinLowerPlateMesh2)
+train2.add(trainCabinLowerPlateMesh3)
+train2.add(trainCabinCollumnMesh)
+train2.add(trainCabinCollumnMesh2)
+train2.add(trainCabinCollumnMesh3)
+train2.add(trainCabinCollumnMesh4)
+train2.add(trainCabinRoofMesh)
+train2.add(trainCabinFloorMesh);
+train2.add(trainCabinFloorPlateMesh);
+train2.add(trainCabinFloorBarMesh);
+train2.add(trainCabinFloorPlateMesh2);
+train2.add(trainCabinFloorBarMesh2);
+train2.add(trainRightWheelMesh);
+train2.add(trainRightWheelMesh2);
+train2.add(trainRightWheelMesh3);
+train2.add(trainLeftWheelMesh);
+train2.add(trainLeftWheelMesh2);
+train2.add(trainLeftWheelMesh3);
+train2.add(trainRightWheelBarMesh);
+train2.add(trainRightWheelBarEndMesh);
+train2.add(trainLeftWheelBarMesh);
+train2.add(trainLeftWheelBarEndMesh);
+train2.add(trainChimneyMesh);
+scene.add(train2)
+
+const trainCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+trainCamera.position.set(-5, 10, 0);
+trainCamera.rotation.set(0, 4.7, 0);
+scene.camera = trainCamera
+
+
+train2.position.y += 0.75
 
 train.position.set(0, 7, 0)
 
 camera.position.set( 0, 100, 100 );
-camera.lookAt( 0, 0, 0 );
+camera.lookAt(0, 0, 0)
 
 const controls = new OrbitControls(camera, renderer.domElement);
 
@@ -208,13 +247,35 @@ function moveTrain() {
         trainProgress = 0;
     }
 
-    let trainPosition = curve.getPointAt(trainProgress);
-	trainPosition.setY(7)
+    let trainPosition = trailCurve.getPointAt(trainProgress);
 
-    train.position.copy(trainPosition);
+    train2.position.copy(trainPosition);
+    
+    let trainTangent = trailCurve.getTangentAt(trainProgress);
+    const rotationYAngle = -Math.atan2(trainTangent.z, trainTangent.x);
+    train2.rotation.y = rotationYAngle;
+    trainCamera.rotation.y = rotationYAngle - Math.PI / 2;
+    const trainCabinRoofPosition = trainCabinRoofMesh.getWorldPosition(new THREE.Vector3());
+    trainCamera.position.copy(trainCabinRoofPosition);
+    trainCamera.position.y -= 1.5
 
-    let trainTangent = curve.getTangentAt(trainProgress);
-    train.rotation.y = -Math.atan2(trainTangent.z, trainTangent.x);
+
+
+    const oscillationValue = Math.sin(trainProgress * Math.PI * 2 * TRAIN_SPEED / 5);
+
+    const oscillationScaled = (oscillationValue + 1) * 0.25; // [-1, 1] to [0, 0.5]
+    const oscillationShifted = oscillationScaled + 1.75; // [0, 0.5] to [1.75, 2.25]
+
+    trainRightWheelBarMesh.position.y = oscillationShifted;
+    trainRightWheelBarEndMesh.position.y = oscillationShifted;
+    trainLeftWheelBarMesh.position.y = oscillationShifted;
+    trainLeftWheelBarEndMesh.position.y = oscillationShifted;
+    trainRightWheelMesh.rotation.y = trainProgress * Math.PI * 2 * TRAIN_SPEED / 5 * -1
+    trainRightWheelMesh2.rotation.y = trainProgress * Math.PI * 2 * TRAIN_SPEED / 5 * -1
+    trainRightWheelMesh3.rotation.y = trainProgress * Math.PI * 2 * TRAIN_SPEED / 5 * -1
+    trainLeftWheelMesh.rotation.y = trainProgress * Math.PI * 2 * TRAIN_SPEED / 5 * -1
+    trainLeftWheelMesh2.rotation.y = trainProgress * Math.PI * 2 * TRAIN_SPEED / 5 * -1
+    trainLeftWheelMesh3.rotation.y = trainProgress * Math.PI * 2 * TRAIN_SPEED / 5 * -1
 
 }
 
@@ -223,10 +284,12 @@ function animate() {
 
 	moveTrain()
 
+
 	controls.update();
 
-	renderer.render( scene, camera );
+	renderer.render( scene, trainCamera );
 }
 
-
+createTerrain(scene);
+createTrail(scene);
 animate();
