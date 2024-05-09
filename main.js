@@ -9,7 +9,31 @@ const TRAIN_WIDTH = 5
 // Initialize Scene
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xADD8E6);
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+const camera1 = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+camera1.position.set(0, 70, 100);
+camera1.rotation.set(0, 0, 0);
+// Train frontal camera
+const camera2 = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+camera2.position.set(-5, 10, 0);
+camera2.rotation.set(0, 4.7, 0);
+
+// Train backwards camera
+const camera3 = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+camera3.position.set(-5, 10, 0);
+camera3.rotation.set(0, 4.7 + Math.PI, 0);
+
+const camera4 = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+camera4.position.set(-140, 10, -40);
+camera4.rotation.set(0, -0.5, 0);
+
+const camera5 = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+camera5.position.set(130, 5, 5);
+camera5.rotation.set(0, 1.5, 0);
+
+const camera6 = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+camera6.position.set(0, 10, 50);
+let activeCamera = 0
+const cameras = [camera1, camera2, camera3, camera4, camera5, camera6]
 
 // Initialize Renderer
 const renderer = new THREE.WebGLRenderer();
@@ -218,21 +242,136 @@ train2.add(trainLeftWheelBarEndMesh);
 train2.add(trainChimneyMesh);
 scene.add(train2)
 
-const trainCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-trainCamera.position.set(-5, 10, 0);
-trainCamera.rotation.set(0, 4.7, 0);
-scene.camera = trainCamera
-
 
 train2.position.y += 0.75
 
 train.position.set(0, 7, 0)
 
-camera.position.set( 0, 100, 100 );
-camera.lookAt(0, 0, 0)
+// Función para cambiar de cámara
+function switchCamera(cameraIndex) {
+    if (cameraIndex >= 0 && cameraIndex < cameras.length) {
+        activeCamera = cameraIndex;
+    }
+}
 
-const controls = new OrbitControls(camera, renderer.domElement);
+// Listener de eventos para detectar las teclas presionadas
+document.addEventListener('keydown', (event) => {
+    switch (event.code) {
+        case 'Digit1':
+            switchCamera(0);
+            break;
+        case 'Digit2':
+            switchCamera(1);
+            break;
+        case 'Digit3':
+            switchCamera(2);
+            break;
+        case 'Digit4':
+            switchCamera(3);
+            break;
+        case 'Digit5':
+            switchCamera(4);
+            break;
+        case 'Digit6':
+            switchCamera(5);
+            break;
+        case 'KeyC':
+            switchCamera((activeCamera + 1) % cameras.length);
+            break;
+        default:
+            break;
+    }
+});
 
+let moveForward = false;
+let moveBackward = false;
+let moveLeft = false;
+let moveRight = false;
+let rotateRight = false;
+let rotateLeft = false;
+
+// Función para manejar los eventos del teclado
+function onKeyDown(event) {
+    switch (event.code) {
+        case 'KeyW':
+            moveForward = true;
+            break;
+        case 'KeyS':
+            moveBackward = true;
+            break;
+        case 'KeyA':
+            moveLeft = true;
+            break;
+        case 'KeyD':
+            moveRight = true;
+            break;
+        case 'KeyE':
+            rotateRight = true;
+            break;
+        case 'KeyQ':
+            rotateLeft = true;
+            break;
+    }
+}
+
+function onKeyUp(event) {
+    switch (event.code) {
+        case 'KeyW':
+            moveForward = false;
+            break;
+        case 'KeyS':
+            moveBackward = false;
+            break;
+        case 'KeyA':
+            moveLeft = false;
+            break;
+        case 'KeyD':
+            moveRight = false;
+            break;
+        case 'KeyE':
+            rotateRight = false;
+            break;
+        case 'KeyQ':
+            rotateLeft = false;
+            break;
+    }
+}
+
+document.addEventListener('keydown', onKeyDown);
+document.addEventListener('keyup', onKeyUp);
+
+function moveCamera() {
+    const speed = 0.5;
+
+    const cameraDirection = new THREE.Vector3(0, 0, -1);
+    camera6.getWorldDirection(cameraDirection);
+
+    const velocity = cameraDirection.clone().multiplyScalar(speed);
+
+    if (moveForward) 
+        camera6.position.add(velocity);
+    if (moveBackward)
+        camera6.position.sub(velocity);
+    if (moveLeft) {
+        const leftDirection = new THREE.Vector3(cameraDirection.z, 0, -cameraDirection.x);
+        leftDirection.normalize();
+        const leftVelocity = leftDirection.clone().multiplyScalar(speed);
+        camera6.position.add(leftVelocity);
+    }
+    if (moveRight) {
+        const rightDirection = new THREE.Vector3(-cameraDirection.z, 0, cameraDirection.x);
+        rightDirection.normalize();
+        const rightVelocity = rightDirection.clone().multiplyScalar(speed);
+        camera6.position.add(rightVelocity);
+    }
+    if (rotateRight) 
+        camera6.rotation.y -= speed / 10;
+    if (rotateLeft)
+        camera6.rotation.y += speed / 10;
+}
+
+
+const controls = new OrbitControls(camera1, renderer.domElement);
 controls.update();
 
 const clock = new THREE.Clock();
@@ -254,10 +393,13 @@ function moveTrain() {
     let trainTangent = trailCurve.getTangentAt(trainProgress);
     const rotationYAngle = -Math.atan2(trainTangent.z, trainTangent.x);
     train2.rotation.y = rotationYAngle;
-    trainCamera.rotation.y = rotationYAngle - Math.PI / 2;
+    camera2.rotation.y = rotationYAngle - Math.PI / 2;
+    camera3.rotation.y = (rotationYAngle - Math.PI / 2) + Math.PI;
     const trainCabinRoofPosition = trainCabinRoofMesh.getWorldPosition(new THREE.Vector3());
-    trainCamera.position.copy(trainCabinRoofPosition);
-    trainCamera.position.y -= 1.5
+    camera2.position.copy(trainCabinRoofPosition);
+    camera2.position.y -= 1.5
+    camera3.position.copy(trainCabinRoofPosition);
+    camera3.position.y -= 1.5
 
 
 
@@ -284,10 +426,11 @@ function animate() {
 
 	moveTrain()
 
+    moveCamera()
 
 	controls.update();
 
-	renderer.render( scene, trainCamera );
+	renderer.render( scene, cameras[activeCamera]);
 }
 
 createTerrain(scene);
