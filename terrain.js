@@ -130,4 +130,51 @@ export function createBridge(scene, position) {
     const arcGroup4 = arcGroup.clone();
     scene.add(arcGroup4);
     arcGroup4.position.x += 30;
+
+    const bridgeDiagonalTube = new THREE.CylinderGeometry( 0.5, 0.5, 17, 32 ); 
+    const bridgeVerticalTube = new THREE.CylinderGeometry( 0.5, 0.5, 13, 32 ); 
+    const bridgeTubeMaterial = new THREE.MeshBasicMaterial( {color: 0x7d1d00} ); 
+    const bridgeTubeMesh = new THREE.Mesh( bridgeDiagonalTube, bridgeTubeMaterial );
+    const bridgeTubeMesh2 = new THREE.Mesh( bridgeDiagonalTube, bridgeTubeMaterial );
+    const bridgeTubeMesh3 = new THREE.Mesh( bridgeVerticalTube, bridgeTubeMaterial );
+    const bridgeTubeMesh4 = new THREE.Mesh( bridgeVerticalTube, bridgeTubeMaterial );
+    const bridgeTubeMesh5 = new THREE.Mesh( bridgeVerticalTube, bridgeTubeMaterial );
+    const bridgeTubeMesh6 = new THREE.Mesh( bridgeDiagonalTube, bridgeTubeMaterial );
+    const bridgeTubeMesh7 = new THREE.Mesh( bridgeDiagonalTube, bridgeTubeMaterial );
+
+    bridgeTubeMesh.position.y = 9
+    bridgeTubeMesh.rotation.z = - Math.PI / 4
+    bridgeTubeMesh2.position.y = 9
+    bridgeTubeMesh2.position.x += 12
+    bridgeTubeMesh2.rotation.z = Math.PI / 4
+    bridgeTubeMesh3.position.x += 6
+    bridgeTubeMesh3.position.y = 9
+    bridgeTubeMesh4.position.x += 18
+    bridgeTubeMesh4.position.y = 9
+    bridgeTubeMesh5.position.y = 15
+    bridgeTubeMesh5.position.x += 12
+    bridgeTubeMesh5.rotation.z = Math.PI / 2
+    bridgeTubeMesh6.rotation.z = - Math.PI / 4
+    bridgeTubeMesh6.position.y = 9
+    bridgeTubeMesh6.position.x += 12
+    bridgeTubeMesh7.rotation.z = Math.PI / 4
+    bridgeTubeMesh7.position.x = 24
+    bridgeTubeMesh7.position.y = 9
+
+    const bridgeCross = new THREE.Group()
+    bridgeCross.add(bridgeTubeMesh)
+    bridgeCross.add(bridgeTubeMesh2)
+    bridgeCross.add(bridgeTubeMesh3)
+    bridgeCross.add(bridgeTubeMesh4)
+    bridgeCross.add(bridgeTubeMesh5)
+    bridgeCross.add(bridgeTubeMesh6)
+    bridgeCross.add(bridgeTubeMesh7)
+    scene.add(bridgeCross)
+    bridgeCross.position.z = 4.5
+    bridgeCross.position.x = 72
+    bridgeCross.position.y = -3
+
+    const bridgeCross2 = bridgeCross.clone()
+    scene.add(bridgeCross2)
+    bridgeCross.position.z = -2.75
 }
