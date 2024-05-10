@@ -2,14 +2,12 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createBridge, createTerrain, createTrail, getTrailCurve } from './terrain';
 import { createTrees } from './trees';
-// import image from './public/test.png'
 
-const TRAIN_SPEED = 60
 const TRAIN_WIDTH = 5
+let TIME = "Day"
 
 // Initialize Scene
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xADD8E6);
 const camera1 = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 camera1.position.set(0, 70, 100);
 camera1.rotation.set(0, 0, 0);
@@ -43,9 +41,35 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
 
-const light = new THREE.DirectionalLight(0xffffff, 1.0)
-light.castShadow = true;
-scene.add(light)
+let trainSpeed = 0
+const sceneLights = []
+
+function addLights() {
+    scene.background = new THREE.Color(TIME == "Day" ? 0xADD8E6 : 0x001F3F);
+    
+    sceneLights.forEach(light => {
+        scene.remove(light);
+    });
+    sceneLights.length = 0;
+
+    if (TIME == "Day") {
+        const sunLight = new THREE.DirectionalLight(0xfff6e1, 1.0);
+        sunLight.castShadow = true;
+        sunLight.position.set(100, 200, 100); 
+        sunLight.target.position.set(0, 0, 0);
+        scene.add(sunLight);
+        scene.add(sunLight.target);
+        
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+        scene.add(ambientLight);
+
+        sceneLights.push(sunLight, ambientLight)
+    } else if (TIME == "Night") {
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+        sceneLights.push(ambientLight)
+    }
+}
 
 createBridge(scene, new THREE.Vector3(70, -16, 1))
 
@@ -54,7 +78,7 @@ const trailCurve = getTrailCurve(scene)
 const trainMaterial = new THREE.MeshStandardMaterial( {color: 0x000000 } ); 
 const textureLoader = new THREE.TextureLoader();
 const wheelTexture = textureLoader.load('train_wheel.png');
-const trainWheelMaterial = new THREE.MeshBasicMaterial( {map: wheelTexture } ); 
+const trainWheelMaterial = new THREE.MeshStandardMaterial( {map: wheelTexture } ); 
 const trainWheelBarMaterial = new THREE.MeshStandardMaterial( {color: 0x888888 } ); 
 
 const trainFrontCylinder = new THREE.CylinderGeometry( TRAIN_WIDTH / 2, TRAIN_WIDTH / 2, 6, 32 );
@@ -176,7 +200,7 @@ trainRightWheelMesh3.position.x += -1.5
 trainLeftWheelMesh.position.y = 2
 trainLeftWheelMesh.position.z -= TRAIN_WIDTH / 2 - 1
 trainLeftWheelMesh.rotation.x = Math.PI / 2
-trainLeftWheelMesh.position.x += 1
+trainLeftWheelMesh.position.x += 3
 
 trainLeftWheelMesh2.position.y = 2
 trainLeftWheelMesh2.position.z -= TRAIN_WIDTH / 2 - 1
@@ -240,9 +264,18 @@ train2.add(trainLeftWheelBarEndMesh);
 train2.add(trainChimneyMesh);
 scene.add(train2)
 
+const spotLight = new THREE.SpotLight(0xffffff, 300);
+spotLight.distance = 100;
+spotLight.angle = Math.PI / 3; 
+spotLight.penumbra = 0.1;
+spotLight.castShadow = true; 
+spotLight.position.y = 11
+
+scene.add(spotLight);
+
 train2.position.y += 0.75
 
-createTrees(scene, 8, new THREE.Vector3(-85, 0, -80), 30);
+createTrees(scene, 8, new THREE.Vector3(-85, 0, -80), 25);
 createTrees(scene, 45, new THREE.Vector3(-30, 0, 60), 60);
 createTrees(scene, 6, new THREE.Vector3(-55, 0, -140), 12);
 createTrees(scene, 18, new THREE.Vector3(110, 0, -100), 40);
@@ -254,8 +287,37 @@ function switchCamera(cameraIndex) {
     }
 }
 
-document.addEventListener('keydown', (event) => {
+let moveForward = false;
+let moveBackward = false;
+let moveLeft = false;
+let moveRight = false;
+let rotateRight = false;
+let rotateLeft = false;
+let accelerate = false;
+let braking = false;
+
+function onKeyDown(event) {
     switch (event.code) {
+        case 'KeyW':
+            moveForward = true;
+            break;
+        case 'KeyS':
+            moveBackward = true;
+            break;
+        case 'KeyA':
+            // moveLeft = true;
+            break;
+        case 'KeyD':
+            // moveRight = true;
+            TIME = (TIME === "Day") ? "Night" : "Day";
+            addLights();
+            break;
+        case 'KeyE':
+            rotateRight = true;
+            break;
+        case 'KeyQ':
+            rotateLeft = true;
+            break;
         case 'Digit1':
             switchCamera(0);
             break;
@@ -277,37 +339,13 @@ document.addEventListener('keydown', (event) => {
         case 'KeyC':
             switchCamera((activeCamera + 1) % cameras.length);
             break;
+        case 'ArrowUp':
+            accelerate = true;
+            break;
+        case 'ArrowDown':
+            braking = true;
+            break;
         default:
-            break;
-    }
-});
-
-let moveForward = false;
-let moveBackward = false;
-let moveLeft = false;
-let moveRight = false;
-let rotateRight = false;
-let rotateLeft = false;
-
-function onKeyDown(event) {
-    switch (event.code) {
-        case 'KeyW':
-            moveForward = true;
-            break;
-        case 'KeyS':
-            moveBackward = true;
-            break;
-        case 'KeyA':
-            moveLeft = true;
-            break;
-        case 'KeyD':
-            moveRight = true;
-            break;
-        case 'KeyE':
-            rotateRight = true;
-            break;
-        case 'KeyQ':
-            rotateLeft = true;
             break;
     }
 }
@@ -331,6 +369,12 @@ function onKeyUp(event) {
             break;
         case 'KeyQ':
             rotateLeft = false;
+            break;
+        case 'ArrowUp':
+            accelerate = false;
+            break;
+        case 'ArrowDown':
+            braking = false;
             break;
     }
 }
@@ -366,6 +410,16 @@ function moveCamera() {
         camera6.rotation.y -= speed / 10;
     if (rotateLeft)
         camera6.rotation.y += speed / 10;
+    if (accelerate && trainSpeed < 100) 
+        updateSpeed(trainSpeed + 10)
+    if (braking && trainSpeed > 0)
+        updateSpeed(trainSpeed - 10)
+}
+
+function updateSpeed(newSpeed) {
+    trainSpeed = newSpeed
+    document.getElementById('Velocity').innerText = `Velocity: ${trainSpeed}`
+    console.log(document.getElementById('Velocity').innerText)
 }
 
 
@@ -378,7 +432,7 @@ let trainProgress = 0;
 function moveTrain() {
 	const delta = clock.getDelta();
 
-	trainProgress += 0.001 * TRAIN_SPEED * delta;
+	trainProgress += 0.001 * trainSpeed * delta;
 
 	if (trainProgress >= 1) {
         trainProgress = 0;
@@ -399,23 +453,40 @@ function moveTrain() {
     camera3.position.copy(trainCabinRoofPosition);
     camera3.position.y -= 1.5
 
+    const spotLightPosition = trainFrontCylinderMesh.getWorldPosition(new THREE.Vector3())
+    const spotLightTargetPosition = trainChimneyMesh.getWorldPosition(new THREE.Vector3())
+    spotLight.position.copy(spotLightPosition);
+    spotLight.position.y = 10
+
+    spotLight.target.position.set(spotLightTargetPosition.x, spotLightTargetPosition.y, spotLightTargetPosition.z);
+
+    spotLight.target.updateMatrixWorld()
 
 
-    const oscillationValue = Math.sin(trainProgress * Math.PI * 2 * TRAIN_SPEED / 5);
+    // Calculamos el ángulo de oscilación circular
+    const oscillationAngle = trainProgress * Math.PI * 2 * trainSpeed;
 
-    const oscillationScaled = (oscillationValue + 1) * 0.25; // [-1, 1] to [0, 0.5]
-    const oscillationShifted = oscillationScaled + 1.75; // [0, 0.5] to [1.75, 2.25]
+    // Calculamos las posiciones X e Y de la oscilación circular
+    const oscillationRadius = 0.25;
+    const oscillationX = - Math.cos(oscillationAngle) * oscillationRadius;
+    const oscillationY = Math.sin(oscillationAngle) * oscillationRadius;
 
-    trainRightWheelBarMesh.position.y = oscillationShifted;
-    trainRightWheelBarEndMesh.position.y = oscillationShifted;
-    trainLeftWheelBarMesh.position.y = oscillationShifted;
-    trainLeftWheelBarEndMesh.position.y = oscillationShifted;
-    trainRightWheelMesh.rotation.y = trainProgress * Math.PI * 2 * TRAIN_SPEED / 5 * -1
-    trainRightWheelMesh2.rotation.y = trainProgress * Math.PI * 2 * TRAIN_SPEED / 5 * -1
-    trainRightWheelMesh3.rotation.y = trainProgress * Math.PI * 2 * TRAIN_SPEED / 5 * -1
-    trainLeftWheelMesh.rotation.y = trainProgress * Math.PI * 2 * TRAIN_SPEED / 5 * -1
-    trainLeftWheelMesh2.rotation.y = trainProgress * Math.PI * 2 * TRAIN_SPEED / 5 * -1
-    trainLeftWheelMesh3.rotation.y = trainProgress * Math.PI * 2 * TRAIN_SPEED / 5 * -1
+    // Aplicamos la oscilación circular a las posiciones de las ruedas
+    trainRightWheelBarMesh.position.x = 1.5 + oscillationX * 1.5;
+    trainRightWheelBarMesh.position.y = 2 + oscillationY;
+    trainRightWheelBarEndMesh.position.x = 5 + oscillationX * 1.5;
+    trainRightWheelBarEndMesh.position.y = 2 + oscillationY;
+    trainLeftWheelBarMesh.position.x = 1.5 + oscillationX * 1.5;
+    trainLeftWheelBarMesh.position.y = 2 + oscillationY;
+    trainLeftWheelBarEndMesh.position.x = 5 + oscillationX * 1.5;
+    trainLeftWheelBarEndMesh.position.y = 2 + oscillationY;
+
+    trainRightWheelMesh.rotation.y = trainProgress * Math.PI * 2 * trainSpeed * -1
+    trainRightWheelMesh2.rotation.y = trainProgress * Math.PI * 2 * trainSpeed * -1
+    trainRightWheelMesh3.rotation.y = trainProgress * Math.PI * 2 * trainSpeed * -1
+    trainLeftWheelMesh.rotation.y = trainProgress * Math.PI * 2 * trainSpeed * -1
+    trainLeftWheelMesh2.rotation.y = trainProgress * Math.PI * 2 * trainSpeed * -1
+    trainLeftWheelMesh3.rotation.y = trainProgress * Math.PI * 2 * trainSpeed * -1
 
 }
 
@@ -425,12 +496,13 @@ function animate() {
 	moveTrain()
 
     moveCamera()
-
+    
 	controls.update();
-
+    
 	renderer.render( scene, cameras[activeCamera]);
 }
 
 createTerrain(scene);
 createTrail(scene);
 animate();
+addLights()

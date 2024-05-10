@@ -16,7 +16,7 @@ export function createTerrain(scene) {
     const waterGeometry = new THREE.PlaneGeometry(TERRAIN_SIZE, TERRAIN_SIZE, SEGMENTS, SEGMENTS);
     
     const terrainMaterial = new THREE.MeshStandardMaterial({ color: GRASS_COLOR, map: heightmap, displacementMap: heightmap, displacementScale: DISPLACEMENT_SCALE, wireframe: false });
-    const waterMaterial = new THREE.MeshBasicMaterial({ color: WATER_COLOR });
+    const waterMaterial = new THREE.MeshStandardMaterial({ color: WATER_COLOR });
     
     
     const terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
@@ -90,13 +90,13 @@ export function getTrailCurve() {
 
 export function createBridge(scene, position) {
     const arcGeometry = new THREE.TorusGeometry( 4, 2, 16, 100, Math.PI ); 
-    const arcMaterial = new THREE.MeshBasicMaterial( { color: 0x7d1d00 } ); 
+    const arcMaterial = new THREE.MeshStandardMaterial( { color: 0x7d1d00 } ); 
     const torus = new THREE.Mesh( arcGeometry, arcMaterial ); 
     torus.position.y = 11
 
     const arcCollumnBoxGeometry = new THREE.BoxGeometry( 4, 10, 4 );
     const arcTopBoxGeometry = new THREE.BoxGeometry( 12, 2, 8 );
-    const arcBoxMaterial = new THREE.MeshBasicMaterial( {color: 0x7d1d00} ); 
+    const arcBoxMaterial = new THREE.MeshStandardMaterial( {color: 0x7d1d00} ); 
     const leftArcColumn = new THREE.Mesh( arcCollumnBoxGeometry, arcBoxMaterial ); 
     const rightArcColumn = new THREE.Mesh( arcCollumnBoxGeometry, arcBoxMaterial );
     const topArcBox = new THREE.Mesh( arcTopBoxGeometry, arcBoxMaterial );
@@ -133,7 +133,7 @@ export function createBridge(scene, position) {
 
     const bridgeDiagonalTube = new THREE.CylinderGeometry( 0.5, 0.5, 17, 32 ); 
     const bridgeVerticalTube = new THREE.CylinderGeometry( 0.5, 0.5, 13, 32 ); 
-    const bridgeTubeMaterial = new THREE.MeshBasicMaterial( {color: 0x7d1d00} ); 
+    const bridgeTubeMaterial = new THREE.MeshStandardMaterial( {color: 0x7d1d00} ); 
     const bridgeTubeMesh = new THREE.Mesh( bridgeDiagonalTube, bridgeTubeMaterial );
     const bridgeTubeMesh2 = new THREE.Mesh( bridgeDiagonalTube, bridgeTubeMaterial );
     const bridgeTubeMesh3 = new THREE.Mesh( bridgeVerticalTube, bridgeTubeMaterial );

@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-const treeTrunkMaterial1 = new THREE.MeshBasicMaterial( {color: 0x5b1f00} ); 
+const treeTrunkMaterial1 = new THREE.MeshStandardMaterial( {color: 0x5b1f00} ); 
 const treeLeavesMaterial1 = new THREE.MeshStandardMaterial( {color: 0x1e4620} ); 
 const treeTrunk1 = new THREE.CylinderGeometry( 1, 1, 15, 32 ); 
 const treeTrunk2 = new THREE.CylinderGeometry( 1.25, 1.25, 11, 32 ); 
