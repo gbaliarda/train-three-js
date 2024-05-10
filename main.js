@@ -46,18 +46,15 @@ const light = new THREE.DirectionalLight(0xffffff, 1.0)
 light.castShadow = true;
 scene.add(light)
 
-createBridge(scene, new THREE.Vector3(70, -16, 4))
+createBridge(scene, new THREE.Vector3(70, -16, 1))
 
 const trailCurve = getTrailCurve(scene)
 
-const trainGeometry = new THREE.BoxGeometry(6, 10, 6)
 const trainMaterial = new THREE.MeshStandardMaterial( {color: 0x000000 } ); 
 const textureLoader = new THREE.TextureLoader();
 const wheelTexture = textureLoader.load('train_wheel.png');
 const trainWheelMaterial = new THREE.MeshBasicMaterial( {map: wheelTexture } ); 
 const trainWheelBarMaterial = new THREE.MeshStandardMaterial( {color: 0x888888 } ); 
-const train = new THREE.Mesh( trainGeometry, trainMaterial ); 
-//scene.add( train );
 
 const trainFrontCylinder = new THREE.CylinderGeometry( TRAIN_WIDTH / 2, TRAIN_WIDTH / 2, 6, 32 );
 const trainFrontCylinder2 = new THREE.CylinderGeometry( TRAIN_WIDTH / 2 + 0.5, TRAIN_WIDTH / 2 + 0.5, 1, 32 );
@@ -245,16 +242,59 @@ scene.add(train2)
 
 train2.position.y += 0.75
 
-train.position.set(0, 7, 0)
+const bridgeDiagonalTube = new THREE.CylinderGeometry( 0.5, 0.5, 17, 32 ); 
+const bridgeVerticalTube = new THREE.CylinderGeometry( 0.5, 0.5, 13, 32 ); 
+const bridgeTubeMaterial = new THREE.MeshBasicMaterial( {color: 0x7d1d00} ); 
+const bridgeTubeMesh = new THREE.Mesh( bridgeDiagonalTube, bridgeTubeMaterial );
+const bridgeTubeMesh2 = new THREE.Mesh( bridgeDiagonalTube, bridgeTubeMaterial );
+const bridgeTubeMesh3 = new THREE.Mesh( bridgeVerticalTube, bridgeTubeMaterial );
+const bridgeTubeMesh4 = new THREE.Mesh( bridgeVerticalTube, bridgeTubeMaterial );
+const bridgeTubeMesh5 = new THREE.Mesh( bridgeVerticalTube, bridgeTubeMaterial );
+const bridgeTubeMesh6 = new THREE.Mesh( bridgeDiagonalTube, bridgeTubeMaterial );
+const bridgeTubeMesh7 = new THREE.Mesh( bridgeDiagonalTube, bridgeTubeMaterial );
 
-// Función para cambiar de cámara
+bridgeTubeMesh.position.y = 9
+bridgeTubeMesh.rotation.z = - Math.PI / 4
+bridgeTubeMesh2.position.y = 9
+bridgeTubeMesh2.position.x += 12
+bridgeTubeMesh2.rotation.z = Math.PI / 4
+bridgeTubeMesh3.position.x += 6
+bridgeTubeMesh3.position.y = 9
+bridgeTubeMesh4.position.x += 18
+bridgeTubeMesh4.position.y = 9
+bridgeTubeMesh5.position.y = 15
+bridgeTubeMesh5.position.x += 12
+bridgeTubeMesh5.rotation.z = Math.PI / 2
+bridgeTubeMesh6.rotation.z = - Math.PI / 4
+bridgeTubeMesh6.position.y = 9
+bridgeTubeMesh6.position.x += 12
+bridgeTubeMesh7.rotation.z = Math.PI / 4
+bridgeTubeMesh7.position.x = 24
+bridgeTubeMesh7.position.y = 9
+
+const bridgeCross = new THREE.Group()
+bridgeCross.add(bridgeTubeMesh)
+bridgeCross.add(bridgeTubeMesh2)
+bridgeCross.add(bridgeTubeMesh3)
+bridgeCross.add(bridgeTubeMesh4)
+bridgeCross.add(bridgeTubeMesh5)
+bridgeCross.add(bridgeTubeMesh6)
+bridgeCross.add(bridgeTubeMesh7)
+scene.add(bridgeCross)
+bridgeCross.position.z = 4.5
+bridgeCross.position.x = 72
+bridgeCross.position.y = -3
+
+const bridgeCross2 = bridgeCross.clone()
+scene.add(bridgeCross2)
+bridgeCross.position.z = -2.75
+
 function switchCamera(cameraIndex) {
     if (cameraIndex >= 0 && cameraIndex < cameras.length) {
         activeCamera = cameraIndex;
     }
 }
 
-// Listener de eventos para detectar las teclas presionadas
 document.addEventListener('keydown', (event) => {
     switch (event.code) {
         case 'Digit1':
@@ -290,7 +330,6 @@ let moveRight = false;
 let rotateRight = false;
 let rotateLeft = false;
 
-// Función para manejar los eventos del teclado
 function onKeyDown(event) {
     switch (event.code) {
         case 'KeyW':

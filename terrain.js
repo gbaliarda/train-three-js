@@ -73,8 +73,8 @@ export function getTrailCurve() {
     const trailPoints = [];
     trailPoints.push(new THREE.Vector3(0, 1, 0));
     trailPoints.push(new THREE.Vector3(120 * TRAIL_SCALE, 1, 0)); 
-    trailPoints.push(new THREE.Vector3(140 * TRAIL_SCALE, 1, -20 * TRAIL_SCALE)); 
-    trailPoints.push(new THREE.Vector3(140 * TRAIL_SCALE, 1, -140 * TRAIL_SCALE));
+    trailPoints.push(new THREE.Vector3(170 * TRAIL_SCALE, 1, -10 * TRAIL_SCALE)); 
+    trailPoints.push(new THREE.Vector3(170 * TRAIL_SCALE, 1, -140 * TRAIL_SCALE));
     trailPoints.push(new THREE.Vector3(100 * TRAIL_SCALE, 1, -160 * TRAIL_SCALE));
     trailPoints.push(new THREE.Vector3(20 * TRAIL_SCALE, 1, -160 * TRAIL_SCALE));
     trailPoints.push(new THREE.Vector3(-40 * TRAIL_SCALE, 1, -180 * TRAIL_SCALE));
@@ -95,7 +95,7 @@ export function createBridge(scene, position) {
     torus.position.y = 11
 
     const arcCollumnBoxGeometry = new THREE.BoxGeometry( 4, 10, 4 );
-    const arcTopBoxGeometry = new THREE.BoxGeometry( 12, 3, 4 );
+    const arcTopBoxGeometry = new THREE.BoxGeometry( 12, 2, 8 );
     const arcBoxMaterial = new THREE.MeshBasicMaterial( {color: 0x7d1d00} ); 
     const leftArcColumn = new THREE.Mesh( arcCollumnBoxGeometry, arcBoxMaterial ); 
     const rightArcColumn = new THREE.Mesh( arcCollumnBoxGeometry, arcBoxMaterial );
