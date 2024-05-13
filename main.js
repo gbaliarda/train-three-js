@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { createBridge, createTerrain, createTrail, getTrailCurve } from './terrain';
+import { createBridge, createTerrain, createTrail, createTunnel, getTrailCurve } from './terrain';
 import { createTrees } from './trees';
 
 const TRAIN_WIDTH = 5
@@ -75,7 +75,9 @@ createBridge(scene, new THREE.Vector3(70, -16, 1))
 
 const trailCurve = getTrailCurve(scene)
 
-const trainMaterial = new THREE.MeshStandardMaterial( {color: 0x000000 } ); 
+const trainMaterial = new THREE.MeshStandardMaterial( {color: 0x900000 } );
+const trainSecondaryMaterial = new THREE.MeshStandardMaterial( {color: 0xccc200 } );
+const trainWheelBarEndMaterial = new THREE.MeshStandardMaterial( {color: 0x380000 } );
 const textureLoader = new THREE.TextureLoader();
 const wheelTexture = textureLoader.load('train_wheel.png');
 const trainWheelMaterial = new THREE.MeshStandardMaterial( {map: wheelTexture } ); 
@@ -112,7 +114,7 @@ const trainCabinCollumnMesh = new THREE.Mesh( trainCabinCollumn, trainMaterial);
 const trainCabinCollumnMesh2 = new THREE.Mesh( trainCabinCollumn, trainMaterial);
 const trainCabinCollumnMesh3 = new THREE.Mesh( trainCabinCollumn, trainMaterial);
 const trainCabinCollumnMesh4 = new THREE.Mesh( trainCabinCollumn, trainMaterial);
-const trainCabinRoofMesh = new THREE.Mesh( trainCabinRoof, trainMaterial);
+const trainCabinRoofMesh = new THREE.Mesh( trainCabinRoof, trainSecondaryMaterial);
 const trainCabinFloorMesh = new THREE.Mesh( trainCabinFloor, trainMaterial);
 const trainCabinFloorPlateMesh = new THREE.Mesh( trainCabinFloorPlate, trainMaterial);
 const trainCabinFloorBarMesh = new THREE.Mesh( trainCabinFloorBar, trainMaterial);
@@ -125,9 +127,9 @@ const trainLeftWheelMesh = new THREE.Mesh( trainWheel, trainWheelMaterial);
 const trainLeftWheelMesh2 = new THREE.Mesh( trainWheel, trainWheelMaterial);
 const trainLeftWheelMesh3 = new THREE.Mesh( trainWheel, trainWheelMaterial);
 const trainRightWheelBarMesh = new THREE.Mesh( trainWheelBar, trainWheelBarMaterial);
-const trainRightWheelBarEndMesh = new THREE.Mesh( trainWheelBarEnd, trainWheelBarMaterial);
+const trainRightWheelBarEndMesh = new THREE.Mesh( trainWheelBarEnd, trainWheelBarEndMaterial);
 const trainLeftWheelBarMesh = new THREE.Mesh( trainWheelBar, trainWheelBarMaterial);
-const trainLeftWheelBarEndMesh = new THREE.Mesh( trainWheelBarEnd, trainWheelBarMaterial);
+const trainLeftWheelBarEndMesh = new THREE.Mesh( trainWheelBarEnd, trainWheelBarEndMaterial);
 const trainChimneyMesh = new THREE.Mesh( trainChimney, trainMaterial);
 trainCabinLowerPlateMesh.position.y = 5
 trainCabinLowerPlateMesh.position.z += TRAIN_WIDTH / 2
@@ -410,10 +412,6 @@ function moveCamera() {
         camera6.rotation.y -= speed / 10;
     if (rotateLeft)
         camera6.rotation.y += speed / 10;
-    if (accelerate && trainSpeed < 100) 
-        updateSpeed(trainSpeed + 10)
-    if (braking && trainSpeed > 0)
-        updateSpeed(trainSpeed - 10)
 }
 
 function updateSpeed(newSpeed) {
@@ -430,6 +428,15 @@ const clock = new THREE.Clock();
 let trainProgress = 0;
 
 function moveTrain() {
+    if (accelerate && trainSpeed < 100) {
+        updateSpeed(trainSpeed + 10)
+        accelerate = false
+    }
+    if (braking && trainSpeed > 0) {
+        updateSpeed(trainSpeed - 10)
+        braking = false
+    }
+
 	const delta = clock.getDelta();
 
 	trainProgress += 0.001 * trainSpeed * delta;
@@ -504,5 +511,6 @@ function animate() {
 
 createTerrain(scene);
 createTrail(scene);
+createTunnel(scene);
 animate();
 addLights()

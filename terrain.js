@@ -10,7 +10,7 @@ const TRAIL_SCALE = 1
 
 export function createTerrain(scene) {
     const loader = new THREE.TextureLoader();
-    const heightmap = loader.load('test.png');
+    const heightmap = loader.load('heightmap.png');
 
     const terrainGeometry = new THREE.PlaneGeometry(TERRAIN_SIZE, TERRAIN_SIZE, SEGMENTS, SEGMENTS);
     const waterGeometry = new THREE.PlaneGeometry(TERRAIN_SIZE, TERRAIN_SIZE, SEGMENTS, SEGMENTS);
@@ -55,7 +55,9 @@ export function createTrail(scene) {
     scene.add(track);
     scene.add(rail);
 
-    // Tunnel
+}
+
+export function createTunnel(scene) {
     const tunnelShape = getTunnelShape()
 
     const tunnelPoints = [];

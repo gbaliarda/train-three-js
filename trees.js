@@ -30,7 +30,6 @@ treeGroup1.add(treeTrunkMesh1)
 treeGroup1.add(treeLeavesMesh1)
 treeGroup1.add(treeLeavesMesh1_2)
 treeGroup1.add(treeLeavesMesh1_3)
-// scene.add(treeGroup1)
 
 const treeTrunkMesh2 = new THREE.Mesh( treeTrunk2, treeTrunkMaterial1 );
 const treeLeavesMesh2 = new THREE.Mesh( treeLeaves2, treeLeavesMaterial1 );
@@ -46,7 +45,6 @@ const treeGroup2 = new THREE.Group()
 treeGroup2.add(treeTrunkMesh2)
 treeGroup2.add(treeLeavesMesh2)
 treeGroup2.add(treeLeavesMesh2_2)
-// scene.add(treeGroup2)
 
 const treeTrunkMesh3 = new THREE.Mesh( treeTrunk3, treeTrunkMaterial1 );
 const treeLeavesMesh3 = new THREE.Mesh( treeLeaves2, treeLeavesMaterial1 );
@@ -67,7 +65,6 @@ treeGroup3.add(treeTrunkMesh3)
 treeGroup3.add(treeLeavesMesh3)
 treeGroup3.add(treeLeavesMesh3_2)
 treeGroup3.add(treeLeavesMesh3_3)
-// scene.add(treeGroup3)
 
 const treeTrunkMesh4 = new THREE.Mesh( treeTrunk4, treeTrunkMaterial1 );
 const treeLeavesMesh4 = new THREE.Mesh( treeLeaves1, treeLeavesMaterial1 );
@@ -82,7 +79,6 @@ const treeGroup4 = new THREE.Group()
 treeGroup4.add(treeTrunkMesh4)
 treeGroup4.add(treeLeavesMesh4)
 treeGroup4.add(treeLeavesMesh4_2)
-// scene.add(treeGroup4)
 
 export function createTrees(scene, n, centerPosition, areaRadius) {
     const minX = centerPosition.x - areaRadius;

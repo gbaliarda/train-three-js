@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "start": "npx vite",
+    "dev": "npx vite"
+  },
   "dependencies": {
     "three": "^0.164.1"
   },
