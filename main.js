@@ -62,12 +62,20 @@ function addLights() {
         
         const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
         scene.add(ambientLight);
-
+        
         sceneLights.push(sunLight, ambientLight)
     } else if (TIME == "Night") {
-        const ambientLight = new THREE.AmbientLight(0x404040);
+
+        const moonLight = new THREE.DirectionalLight(0x888888, 0.1);
+        moonLight.position.set(-100, 200, -100);
+        moonLight.target.position.set(0, 0, 0);
+        scene.add(moonLight);
+        scene.add(moonLight.target);
+
+
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
         scene.add(ambientLight);
-        sceneLights.push(ambientLight)
+        sceneLights.push(moonLight, ambientLight)
     }
 }
 
