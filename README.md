@@ -1,7 +1,7 @@
 ## Requisitos
-Node >= 16
-Npm >= 9
-Npx >= 9
+- Node >= 16
+- Npm >= 9
+- Npx >= 9
 
 ## Instalación
 
