@@ -288,7 +288,7 @@ train2.position.y += 0.75
 createTrees(scene, 8, new THREE.Vector3(-85, 0, -80), 25);
 createTrees(scene, 45, new THREE.Vector3(-30, 0, 60), 60);
 createTrees(scene, 6, new THREE.Vector3(-55, 0, -140), 12);
-createTrees(scene, 18, new THREE.Vector3(110, 0, -100), 40);
+createTrees(scene, 11, new THREE.Vector3(125, 0, -100), 40);
 
 
 function switchCamera(cameraIndex) {
@@ -478,15 +478,12 @@ function moveTrain() {
     spotLight.target.updateMatrixWorld()
 
 
-    // Calculamos el ángulo de oscilación circular
     const oscillationAngle = trainProgress * Math.PI * 2 * trainSpeed;
 
-    // Calculamos las posiciones X e Y de la oscilación circular
     const oscillationRadius = 0.25;
     const oscillationX = - Math.cos(oscillationAngle) * oscillationRadius;
     const oscillationY = Math.sin(oscillationAngle) * oscillationRadius;
 
-    // Aplicamos la oscilación circular a las posiciones de las ruedas
     trainRightWheelBarMesh.position.x = 1.5 + oscillationX * 1.5;
     trainRightWheelBarMesh.position.y = 2 + oscillationY;
     trainRightWheelBarEndMesh.position.x = 5 + oscillationX * 1.5;

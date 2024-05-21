@@ -15,10 +15,15 @@ export function createTerrain(scene) {
     const terrainGeometry = new THREE.PlaneGeometry(TERRAIN_SIZE, TERRAIN_SIZE, SEGMENTS, SEGMENTS);
     const waterGeometry = new THREE.PlaneGeometry(TERRAIN_SIZE, TERRAIN_SIZE, SEGMENTS, SEGMENTS);
     
-    const terrainMaterial = new THREE.MeshStandardMaterial({ color: GRASS_COLOR, map: heightmap, displacementMap: heightmap, displacementScale: DISPLACEMENT_SCALE, wireframe: false });
-    const waterMaterial = new THREE.MeshStandardMaterial({ color: WATER_COLOR });
-    
-    
+    const terrainMaterial = new THREE.MeshStandardMaterial({ color: GRASS_COLOR, map: heightmap, displacementMap: heightmap, displacementScale: DISPLACEMENT_SCALE, roughness: 0.8, metalness: 0 });
+    const waterMaterial = new THREE.MeshPhongMaterial({
+        color: WATER_COLOR,
+        specular: 0x888888,
+        shininess: 100,
+        reflectivity: 0.5 
+    });
+    const waterMaterial2 = new THREE.MeshPhysicalMaterial({ color: WATER_COLOR, metalness: 0, roughness: 0.1, clearcoat: 1, clearcoatRoughness: 0, reflectivity: 1, thickness: 0.5 });
+          
     const terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
     const water = new THREE.Mesh(waterGeometry, waterMaterial);
     
