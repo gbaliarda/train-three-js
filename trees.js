@@ -1,7 +1,48 @@
 import * as THREE from "three";
 
-const treeTrunkMaterial1 = new THREE.MeshStandardMaterial( {color: 0x5b1f00} ); 
-const treeLeavesMaterial1 = new THREE.MeshStandardMaterial( {color: 0x1e4620} ); 
+const loader = new THREE.TextureLoader();
+
+const treeAoMap = loader.load('textures/Bark_06_AmbientOcclusion.jpg');
+const treeBaseColorMap = loader.load('textures/Bark_06_BaseColor.jpg');
+const treeHeightMap = loader.load('textures/Bark_06_Height.png');
+const treeNormalMap = loader.load('textures/Bark_06_Normal.jpg');
+const treeRoughnessMap = loader.load('textures/Bark_06_Roughness.jpg');
+
+const treeTrunkMaterial1 = new THREE.MeshStandardMaterial({
+    color: 0x5b1f00,
+    aoMap: treeAoMap,
+    map: treeBaseColorMap,
+    displacementMap: treeHeightMap,
+    displacementScale: 0.25,
+    normalMap: treeNormalMap,
+    roughnessMap: treeRoughnessMap,
+    roughness: 1,
+    metalness: 0,
+    side: THREE.DoubleSide
+});
+const treeTrunkMaterial2 = new THREE.MeshStandardMaterial( {color: 0x5b1f00} ); 
+
+const leavesAoMap = loader.load('textures/Hedge_001_AmbientOcclusion.jpg');
+const leavesBaseColorMap = loader.load('textures/Hedge_001_BaseColor.jpg');
+const leavesHeightMap = loader.load('textures/Hedge_001_Height.png');
+const leavesNormalMap = loader.load('textures/Hedge_001_Normal.jpg');
+const leavesRoughnessMap = loader.load('textures/Hedge_001_Roughness.jpg');
+
+const treeLeavesMaterial1 = new THREE.MeshStandardMaterial({
+    color: 0x1e4620,
+    aoMap: leavesAoMap,
+    map: leavesBaseColorMap,
+    displacementMap: leavesHeightMap,
+    displacementScale: 0.1,
+    normalMap: leavesNormalMap,
+    roughnessMap: leavesRoughnessMap,
+    roughness: 1,
+    metalness: 0,
+    side: THREE.DoubleSide
+});
+const treeLeavesMaterial2 = new THREE.MeshStandardMaterial( {color: 0x1e4620} ); 
+
+
 const treeTrunk1 = new THREE.CylinderGeometry( 1, 1, 15, 32 ); 
 const treeTrunk2 = new THREE.CylinderGeometry( 1.25, 1.25, 11, 32 ); 
 const treeTrunk3 = new THREE.CylinderGeometry( 1, 1, 13, 32 ); 
@@ -14,6 +55,14 @@ const treeTrunkMesh1 = new THREE.Mesh( treeTrunk1, treeTrunkMaterial1 );
 const treeLeavesMesh1 = new THREE.Mesh( treeLeaves1, treeLeavesMaterial1 );
 const treeLeavesMesh1_2 = new THREE.Mesh( treeLeaves2, treeLeavesMaterial1 );
 const treeLeavesMesh1_3 = new THREE.Mesh( treeLeaves2, treeLeavesMaterial1 );
+treeTrunkMesh1.castShadow = true;
+treeTrunkMesh1.receiveShadow = true;
+treeLeavesMesh1.castShadow = true;
+treeLeavesMesh1.receiveShadow = true;
+treeLeavesMesh1_2.castShadow = true;
+treeLeavesMesh1_2.receiveShadow = true;
+treeLeavesMesh1_3.castShadow = true;
+treeLeavesMesh1_3.receiveShadow = true;
 treeTrunkMesh1.position.z = 20 
 treeTrunkMesh1.position.y = 7 
 treeLeavesMesh1.position.z = 19
@@ -34,6 +83,12 @@ treeGroup1.add(treeLeavesMesh1_3)
 const treeTrunkMesh2 = new THREE.Mesh( treeTrunk2, treeTrunkMaterial1 );
 const treeLeavesMesh2 = new THREE.Mesh( treeLeaves2, treeLeavesMaterial1 );
 const treeLeavesMesh2_2 = new THREE.Mesh( treeLeaves3, treeLeavesMaterial1 );
+treeTrunkMesh2.castShadow = true;
+treeTrunkMesh2.receiveShadow = true;
+treeLeavesMesh2.castShadow = true;
+treeLeavesMesh2.receiveShadow = true;
+treeLeavesMesh2_2.castShadow = true;
+treeLeavesMesh2_2.receiveShadow = true;
 treeTrunkMesh2.position.z = 20 
 treeTrunkMesh2.position.y = 6 
 treeLeavesMesh2.position.y = 12 
@@ -50,6 +105,14 @@ const treeTrunkMesh3 = new THREE.Mesh( treeTrunk3, treeTrunkMaterial1 );
 const treeLeavesMesh3 = new THREE.Mesh( treeLeaves2, treeLeavesMaterial1 );
 const treeLeavesMesh3_2 = new THREE.Mesh( treeLeaves2, treeLeavesMaterial1 );
 const treeLeavesMesh3_3 = new THREE.Mesh( treeLeaves1, treeLeavesMaterial1 );
+treeTrunkMesh3.castShadow = true;
+treeTrunkMesh3.receiveShadow = true;
+treeLeavesMesh3.castShadow = true;
+treeLeavesMesh3.receiveShadow = true;
+treeLeavesMesh3_2.castShadow = true;
+treeLeavesMesh3_2.receiveShadow = true;
+treeLeavesMesh3_3.castShadow = true;
+treeLeavesMesh3_3.receiveShadow = true;
 treeTrunkMesh3.position.z = 20 
 treeTrunkMesh3.position.y = 7 
 treeLeavesMesh3.position.y = 11
@@ -69,6 +132,9 @@ treeGroup3.add(treeLeavesMesh3_3)
 const treeTrunkMesh4 = new THREE.Mesh( treeTrunk4, treeTrunkMaterial1 );
 const treeLeavesMesh4 = new THREE.Mesh( treeLeaves1, treeLeavesMaterial1 );
 const treeLeavesMesh4_2 = new THREE.Mesh( treeLeaves1, treeLeavesMaterial1 );
+treeTrunkMesh4.castShadow = true;
+treeLeavesMesh4.castShadow = true;
+treeLeavesMesh4_2.castShadow = true;
 treeTrunkMesh4.position.z = 20 
 treeTrunkMesh4.position.y = 8 
 treeLeavesMesh4.position.z = 20 

@@ -2,12 +2,19 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createBridge, createTerrain, createTrail, createTunnel, getTrailCurve } from './terrain';
 import { createTrees } from './trees';
+import { Sky } from 'three/examples/jsm/Addons.js';
 
 const TRAIN_WIDTH = 5
+const WAVE_SPEED = 0.05;
 let TIME = "Day"
 
 // Initialize Scene
 const scene = new THREE.Scene();
+
+
+const sky = new Sky();
+sky.scale.setScalar( 1000 );
+
 const camera1 = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 camera1.position.set(0, 70, 100);
 camera1.rotation.set(0, 0, 0);
@@ -45,30 +52,64 @@ let trainSpeed = 0
 const sceneLights = []
 
 function addLights() {
-    scene.background = new THREE.Color(TIME == "Day" ? 0xADD8E6 : 0x001F3F);
-    
+    // scene.background = new THREE.Color(TIME == "Day" ? 0xADD8E6 : TIME == "Night" ? 0x001F3F : 0x000000);
+    // const sunPosition = new THREE.Vector3().setFromSphericalCoords( 1, THREE.MathUtils.degToRad( TIME == "Day" ? 80 : 180 ), THREE.MathUtils.degToRad( 40 ) );
+
+    sky.material.uniforms.sunPosition.value = new THREE.Vector3(0,0,0);
+
     sceneLights.forEach(light => {
         scene.remove(light);
     });
     sceneLights.length = 0;
 
     if (TIME == "Day") {
-        const sunLight = new THREE.DirectionalLight(0xfff6e1, 1.0);
+
+        const sunPosition = new THREE.Vector3().setFromSphericalCoords( 1, THREE.MathUtils.degToRad(20), THREE.MathUtils.degToRad(40) );
+        sky.material.uniforms.sunPosition.value = sunPosition;
+
+        const sunLight = new THREE.DirectionalLight(0xfff6e1, 0.8);
         sunLight.castShadow = true;
-        sunLight.position.set(100, 200, 100); 
-        sunLight.target.position.set(0, 0, 0);
+        sunLight.position.copy(new THREE.Vector3(1000,400,1000));
+
+        sunLight.shadow.mapSize.width = 8192;
+        sunLight.shadow.mapSize.height = 8192;
+        sunLight.shadow.bias = -0.0005;
+        sunLight.shadow.normalBias = 0.05;
+    
+        sunLight.shadow.camera.far = 3000;
+        sunLight.shadow.camera.left = -500;
+        sunLight.shadow.camera.right = 500;
+        sunLight.shadow.camera.top = 500;
+        sunLight.shadow.camera.bottom = -500;
+
+        // const helper = new THREE.CameraHelper(sunLight.shadow.camera);
+        // scene.add(helper);
+
         scene.add(sunLight);
         scene.add(sunLight.target);
-        
-        const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+
+        const ambientLight = new THREE.AmbientLight(0x808080, 0.8);
         scene.add(ambientLight);
-        
         sceneLights.push(sunLight, ambientLight)
     } else if (TIME == "Night") {
+        const sunPosition = new THREE.Vector3().setFromSphericalCoords( 1, THREE.MathUtils.degToRad(180), THREE.MathUtils.degToRad( 40 ) );
+
+        sky.material.uniforms.sunPosition.value = sunPosition
 
         const moonLight = new THREE.DirectionalLight(0x888888, 0.1);
-        moonLight.position.set(-100, 200, -100);
-        moonLight.target.position.set(0, 0, 0);
+        moonLight.castShadow = true;
+        moonLight.position.copy(new THREE.Vector3(1000,400,1000));
+
+        moonLight.shadow.mapSize.width = 8192;
+        moonLight.shadow.mapSize.height = 8192;
+        moonLight.shadow.bias = -0.0005;
+        moonLight.shadow.normalBias = 0.05;
+    
+        moonLight.shadow.camera.far = 3000;
+        moonLight.shadow.camera.left = -500;
+        moonLight.shadow.camera.right = 500;
+        moonLight.shadow.camera.top = 500;
+        moonLight.shadow.camera.bottom = -500;
         scene.add(moonLight);
         scene.add(moonLight.target);
 
@@ -76,6 +117,7 @@ function addLights() {
         const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
         scene.add(ambientLight);
         sceneLights.push(moonLight, ambientLight)
+
     }
 }
 
@@ -94,7 +136,11 @@ const trainWheelBarMaterial = new THREE.MeshStandardMaterial( {color: 0x888888 }
 const trainFrontCylinder = new THREE.CylinderGeometry( TRAIN_WIDTH / 2, TRAIN_WIDTH / 2, 6, 32 );
 const trainFrontCylinder2 = new THREE.CylinderGeometry( TRAIN_WIDTH / 2 + 0.5, TRAIN_WIDTH / 2 + 0.5, 1, 32 );
 const trainFrontCylinderMesh = new THREE.Mesh( trainFrontCylinder, trainMaterial ); 
+trainFrontCylinderMesh.castShadow = true
+trainFrontCylinderMesh.receiveShadow = true
 const trainFrontCylinderMesh2 = new THREE.Mesh( trainFrontCylinder2, trainMaterial ); 
+trainFrontCylinderMesh2.castShadow = true
+trainFrontCylinderMesh2.receiveShadow = true
 scene.add( trainFrontCylinderMesh );
 scene.add( trainFrontCylinderMesh2 );
 
@@ -116,29 +162,77 @@ const trainWheelBar = new THREE.CylinderGeometry( 0.17, 0.17, 6.5);
 const trainWheelBarEnd = new THREE.CylinderGeometry( 0.3, 0.3, 1.5);
 const trainChimney = new THREE.CylinderGeometry( 0.35, 0.35, 2.5);
 const trainCabinLowerPlateMesh = new THREE.Mesh( trainCabinLowerPlate, trainMaterial);
+trainCabinLowerPlateMesh.castShadow = true
+trainCabinLowerPlateMesh.receiveShadow = true
 const trainCabinLowerPlateMesh2 = new THREE.Mesh( trainCabinLowerPlate, trainMaterial);
+trainCabinLowerPlateMesh2.castShadow = true
+trainCabinLowerPlateMesh2.receiveShadow = true
 const trainCabinLowerPlateMesh3 = new THREE.Mesh( trainCabinLowerPlate, trainMaterial);
+trainCabinLowerPlateMesh3.castShadow = true
+trainCabinLowerPlateMesh3.receiveShadow = true
 const trainCabinCollumnMesh = new THREE.Mesh( trainCabinCollumn, trainMaterial);
+trainCabinCollumnMesh.castShadow = true
+trainCabinCollumnMesh.receiveShadow = true
 const trainCabinCollumnMesh2 = new THREE.Mesh( trainCabinCollumn, trainMaterial);
+trainCabinCollumnMesh2.castShadow = true
+trainCabinCollumnMesh2.receiveShadow = true
 const trainCabinCollumnMesh3 = new THREE.Mesh( trainCabinCollumn, trainMaterial);
+trainCabinCollumnMesh3.castShadow = true
+trainCabinCollumnMesh3.receiveShadow = true
 const trainCabinCollumnMesh4 = new THREE.Mesh( trainCabinCollumn, trainMaterial);
+trainCabinCollumnMesh4.castShadow = true
+trainCabinCollumnMesh4.receiveShadow = true
 const trainCabinRoofMesh = new THREE.Mesh( trainCabinRoof, trainSecondaryMaterial);
+trainCabinRoofMesh.castShadow = true
+trainCabinRoofMesh.receiveShadow = true
 const trainCabinFloorMesh = new THREE.Mesh( trainCabinFloor, trainMaterial);
+trainCabinFloorMesh.castShadow = true
+trainCabinFloorMesh.receiveShadow = true
 const trainCabinFloorPlateMesh = new THREE.Mesh( trainCabinFloorPlate, trainMaterial);
+trainCabinFloorPlateMesh.castShadow = true
+trainCabinFloorPlateMesh.receiveShadow = true
 const trainCabinFloorBarMesh = new THREE.Mesh( trainCabinFloorBar, trainMaterial);
+trainCabinFloorBarMesh.castShadow = true
+trainCabinFloorBarMesh.receiveShadow = true
 const trainCabinFloorPlateMesh2 = new THREE.Mesh( trainCabinFloorPlate, trainMaterial);
+trainCabinFloorPlateMesh2.castShadow = true
+trainCabinFloorPlateMesh2.receiveShadow = true
 const trainCabinFloorBarMesh2 = new THREE.Mesh( trainCabinFloorBar, trainMaterial);
+trainCabinFloorBarMesh2.castShadow = true
+trainCabinFloorBarMesh2.receiveShadow = true
 const trainRightWheelMesh = new THREE.Mesh( trainWheel, trainWheelMaterial);
+trainRightWheelMesh.castShadow = true
+trainRightWheelMesh.receiveShadow = true
 const trainRightWheelMesh2 = new THREE.Mesh( trainWheel, trainWheelMaterial);
+trainRightWheelMesh2.castShadow = true
+trainRightWheelMesh2.receiveShadow = true
 const trainRightWheelMesh3 = new THREE.Mesh( trainWheel, trainWheelMaterial);
+trainRightWheelMesh3.castShadow = true
+trainRightWheelMesh3.receiveShadow = true
 const trainLeftWheelMesh = new THREE.Mesh( trainWheel, trainWheelMaterial);
+trainLeftWheelMesh.castShadow = true
+trainLeftWheelMesh.receiveShadow = true
 const trainLeftWheelMesh2 = new THREE.Mesh( trainWheel, trainWheelMaterial);
+trainLeftWheelMesh2.castShadow = true
+trainLeftWheelMesh2.receiveShadow = true
 const trainLeftWheelMesh3 = new THREE.Mesh( trainWheel, trainWheelMaterial);
+trainLeftWheelMesh3.castShadow = true
+trainLeftWheelMesh3.receiveShadow = true
 const trainRightWheelBarMesh = new THREE.Mesh( trainWheelBar, trainWheelBarMaterial);
+trainRightWheelBarMesh.castShadow = true
+trainRightWheelBarMesh.receiveShadow = true
 const trainRightWheelBarEndMesh = new THREE.Mesh( trainWheelBarEnd, trainWheelBarEndMaterial);
+trainRightWheelBarEndMesh.castShadow = true
+trainRightWheelBarEndMesh.receiveShadow = true
 const trainLeftWheelBarMesh = new THREE.Mesh( trainWheelBar, trainWheelBarMaterial);
+trainLeftWheelBarMesh.castShadow = true
+trainLeftWheelBarMesh.receiveShadow = true
 const trainLeftWheelBarEndMesh = new THREE.Mesh( trainWheelBarEnd, trainWheelBarEndMaterial);
+trainLeftWheelBarEndMesh.castShadow = true
+trainLeftWheelBarEndMesh.receiveShadow = true
 const trainChimneyMesh = new THREE.Mesh( trainChimney, trainMaterial);
+trainChimneyMesh.castShadow = true
+trainChimneyMesh.receiveShadow = true
 trainCabinLowerPlateMesh.position.y = 5
 trainCabinLowerPlateMesh.position.z += TRAIN_WIDTH / 2
 trainCabinLowerPlateMesh.position.x += -2
@@ -290,6 +384,38 @@ createTrees(scene, 45, new THREE.Vector3(-30, 0, 60), 60);
 createTrees(scene, 6, new THREE.Vector3(-55, 0, -140), 12);
 createTrees(scene, 11, new THREE.Vector3(125, 0, -100), 40);
 
+function createLampPost(position) {
+    const lightTubeGeometry = new THREE.CylinderGeometry( 1, 1, 15, 32 ); 
+    const lightTubeMaterial = new THREE.MeshStandardMaterial( {color: 0x1e4620} ); 
+    const lightBolbGeometry = new THREE.SphereGeometry( 2.5, 32, 16 ); 
+    const lightBolbMaterial = new THREE.MeshStandardMaterial( {transparent: true, emissive: 0xdddddd, emissiveIntensity: 50, opacity: 0.6} ); 
+    
+    const lightTubeMesh = new THREE.Mesh( lightTubeGeometry, lightTubeMaterial );
+    lightTubeMesh.castShadow = true;
+    const lightBolbMesh = new THREE.Mesh( lightBolbGeometry, lightBolbMaterial );
+    lightBolbMesh.castShadow = true;
+    
+    lightTubeMesh.position.set(position.x, position.y, position.z)
+    lightBolbMesh.position.set(position.x, position.y + 10, position.z)
+
+    const pointLight = new THREE.PointLight(0xffffff, 500, 100);
+    pointLight.position.set(position.x, position.y + 20, position.z);
+    pointLight.castShadow = true;
+
+    const lightPost = new THREE.Group()
+    lightPost.add(lightTubeMesh)
+    lightPost.add(lightBolbMesh)
+    lightPost.add(pointLight);
+
+    scene.add(lightPost)
+}
+
+createLampPost(new THREE.Vector3(50, 5, 10))
+createLampPost(new THREE.Vector3(120, 5, -10))
+createLampPost(new THREE.Vector3(190, 5, -60))
+createLampPost(new THREE.Vector3(40, 5, -150))
+createLampPost(new THREE.Vector3(-140, 5, -150))
+createLampPost(new THREE.Vector3(-120, 5, -25))
 
 function switchCamera(cameraIndex) {
     if (cameraIndex >= 0 && cameraIndex < cameras.length) {
@@ -319,7 +445,7 @@ function onKeyDown(event) {
             break;
         case 'KeyD':
             // moveRight = true;
-            TIME = (TIME === "Day") ? "Night" : "Day";
+            TIME = (TIME === "Day") ? "Night" : (TIME === "Night") ? "NoLight" : "Day";
             addLights();
             break;
         case 'KeyE':
@@ -502,11 +628,31 @@ function moveTrain() {
 
 }
 
+const waterMaterial = createTerrain(scene);
+createTrail(scene);
+createTunnel(scene, new THREE.Vector3(110, 5, -126), new THREE.Vector3(0, Math.PI / 2, 0));
+addLights();
+
+function animateWater() {
+    const time = performance.now() * 0.001;
+    waterMaterial.map.offset.x = time * WAVE_SPEED;
+    waterMaterial.map.offset.y = time * WAVE_SPEED;
+
+    waterMaterial.displacementMap.offset.x = time * WAVE_SPEED;
+    waterMaterial.displacementMap.offset.y = time * WAVE_SPEED;
+
+    waterMaterial.normalMap.offset.x = time * WAVE_SPEED;
+    waterMaterial.normalMap.offset.y = time * WAVE_SPEED;
+}
+
+
 function animate() {
-	requestAnimationFrame( animate );
+    requestAnimationFrame( animate );
+    
+    animateWater()
 
 	moveTrain()
-
+    
     moveCamera()
     
 	controls.update();
@@ -514,8 +660,5 @@ function animate() {
 	renderer.render( scene, cameras[activeCamera]);
 }
 
-createTerrain(scene);
-createTrail(scene);
-createTunnel(scene);
+scene.add(sky)
 animate();
-addLights()
