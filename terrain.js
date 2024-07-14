@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { getRailShape, getTrackShape, getTunnelShape } from './shapes';
+import CustomShaderMaterial from 'three-custom-shader-material/vanilla'
 
 const GRASS_COLOR = 0x00e335
 const WATER_COLOR = 0x42a5b8
@@ -8,15 +9,20 @@ const TERRAIN_SIZE = 500
 const DISPLACEMENT_SCALE = 40
 const TRAIL_SCALE = 1
 
-export function createTerrain(scene) {
+export async function createTerrain(scene, directionalLight) {
+    const vertexShader = await fetch('./terrainVertexShader.glsl').then(res => res.text());
+    const fragmentShader = await fetch('./terrainFragmentShader.glsl').then(res => res.text());
+    
+    
     const loader = new THREE.TextureLoader();
-    const heightmap = loader.load('test3.png');
-
+    const heightmap = loader.load('test3_3.png');
+    
     const aoMap = loader.load('textures/Stylized_Grass_003_ambientOcclusion.jpg');
     const baseColorMap = loader.load('textures/Stylized_Grass_003_basecolor.jpg');
     const normalMap = loader.load('textures/Stylized_Grass_003_normal.jpg');
     const roughnessMap = loader.load('textures/Stylized_Grass_003_roughness.jpg');
-
+    
+    const mountainColorMap = loader.load('textures/Ground_Dirt_005_COLOR.JPG');
     const terrainGeometry = new THREE.PlaneGeometry(TERRAIN_SIZE, TERRAIN_SIZE, SEGMENTS, SEGMENTS);
     const waterGeometry = new THREE.PlaneGeometry(TERRAIN_SIZE, TERRAIN_SIZE, SEGMENTS, SEGMENTS);
     
@@ -25,6 +31,10 @@ export function createTerrain(scene) {
     baseColorMap.wrapT = THREE.RepeatWrapping;
     baseColorMap.repeat.set(25, 25);
     
+    mountainColorMap.wrapS = THREE.RepeatWrapping;
+    mountainColorMap.wrapT = THREE.RepeatWrapping;
+    mountainColorMap.repeat.set(25, 25);
+
     aoMap.wrapS = THREE.RepeatWrapping;
     aoMap.wrapT = THREE.RepeatWrapping;
     aoMap.repeat.set(25, 25);
@@ -38,26 +48,117 @@ export function createTerrain(scene) {
     roughnessMap.repeat.set(25, 25);
     
     
+    // const terrainMaterial = new THREE.MeshStandardMaterial({
+    //     map: baseColorMap,
+    //     displacementMap: heightmap,
+    //     displacementScale: DISPLACEMENT_SCALE,
+    //     aoMap: aoMap,
+    //     normalMap: normalMap,
+    //     roughnessMap: roughnessMap,
+    //     roughness: 0.8,
+    //     metalness: 0,
+    //     wireframe: false
+    // });
+
+    // const terrainMaterial = new THREE.ShaderMaterial({
+    //     uniforms: {
+    //         baseTexture: { value: baseColorMap },
+    //         mountainTexture: { value: mountainColorMap },
+    //         heightMap: { value: heightmap },
+    //         displacementScale: { value: DISPLACEMENT_SCALE },
+    //         baseRepeat: { value: new THREE.Vector2(25, 25) },
+    //         mountainRepeat: { value: new THREE.Vector2(25, 25) },
+    //     },
+    //     vertexShader: vertexShader,
+    //     fragmentShader: fragmentShader,
+    //     wireframe: false,
+    //     // lights: true, // Habilita la interacción con las luces
+    //     // shadowSide: THREE.DoubleSide, // Opcional: permite que el objeto arroje sombra en ambos lados
+    //     // side: THREE.DoubleSide // Opcional: permite que el material se vea desde ambos lados
+    // });
+
     const terrainMaterial = new THREE.MeshStandardMaterial({
-        map: baseColorMap,
+        // map: baseColorMap,
         displacementMap: heightmap,
         displacementScale: DISPLACEMENT_SCALE,
-        aoMap: aoMap,
-        normalMap: normalMap,
-        roughnessMap: roughnessMap,
         roughness: 0.8,
         metalness: 0,
-        wireframe: false
-    });
+        wireframe: false,
+        side: THREE.DoubleSide,
+        onBeforeCompile: shader => {
+            shader.uniforms.heightMap = { value: heightmap };
+            shader.uniforms.baseTexture = { value: baseColorMap};
+            shader.uniforms.mountainTexture = { value: mountainColorMap};
+            shader.uniforms.displScale = { value: DISPLACEMENT_SCALE };
+            shader.uniforms.baseRepeat = { value: new THREE.Vector2(25, 25) };
+            shader.uniforms.mountainRepeat = { value: new THREE.Vector2(25, 25) };
+            shader.vertexShader = `
+            uniform sampler2D heightMap;
+            uniform float displScale;
+            
+            varying vec2 vUv;
+            varying float vHeight;
+            varying vec3 vPosition;
+            
+            ${shader.vertexShader}
+            `.replace(`#include <displacementmap_vertex>`, `
+                #include <displacementmap_vertex>
+                    vUv = uv;
 
-    const waterColorMap = loader.load('textures/Water_002_COLOR.jpg');
-    const waterDisplacementMap = loader.load('textures/Water_002_DISP.png');
-    const waterNormalMap = loader.load('textures/Water_002_NORM.jpg');
-    const waterAoMap = loader.load('textures/Water_002_OCC.jpg');
-    const waterSpecMap = loader.load('textures/Water_002_SPEC.jpg');
+                    vec4 heightData = texture2D(heightMap, uv);
+                    vHeight = heightData.r * displScale;
 
-    waterColorMap.wrapS = THREE.RepeatWrapping;
-    waterColorMap.wrapT = THREE.RepeatWrapping;
+                    vec3 newPosition = position;
+                    newPosition.z += vHeight;
+
+                    vPosition = position;
+
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                `)
+                shader.fragmentShader = `
+                precision highp float;
+
+                uniform sampler2D baseTexture;
+                uniform sampler2D mountainTexture;
+                uniform sampler2D heightMap;
+                uniform float displScale;
+                uniform vec2 baseRepeat;
+                uniform vec2 mountainRepeat;
+
+                varying vec2 vUv;
+                ${shader.fragmentShader}
+                `.replace(`#include <color_fragment>`, `
+                    #include <color_fragment>
+                    vec4 heightData = texture2D(heightMap, vUv);
+                    float height = heightData.r * displScale;
+
+                    // Define thresholds for changing textures
+                    float lowerThreshold = 13.0;
+                    float upperThreshold = 17.0;
+
+                    vec2 baseUv = vUv * baseRepeat;
+                    vec2 mountainUv = vUv * mountainRepeat;
+
+                    vec4 baseColor = texture2D(baseTexture, baseUv);
+                    vec4 mountainColor = texture2D(mountainTexture, mountainUv);
+
+                    float transition = smoothstep(lowerThreshold, upperThreshold, height);
+                    vec4 color = mix(baseColor, mountainColor, transition);
+
+                    gl_FragColor = color;
+                    diffuseColor *= color;
+                    `)
+                }
+            });
+            
+            const waterColorMap = loader.load('textures/Water_002_COLOR.jpg');
+            const waterDisplacementMap = loader.load('textures/Water_002_DISP.png');
+            const waterNormalMap = loader.load('textures/Water_002_NORM.jpg');
+            const waterAoMap = loader.load('textures/Water_002_OCC.jpg');
+            const waterSpecMap = loader.load('textures/Water_002_SPEC.jpg');
+            
+            waterColorMap.wrapS = THREE.RepeatWrapping;
+            waterColorMap.wrapT = THREE.RepeatWrapping;
     waterColorMap.repeat.set(25, 25);
 
     waterDisplacementMap.wrapS = THREE.RepeatWrapping;
@@ -82,12 +183,13 @@ export function createTerrain(scene) {
         aoMap: waterAoMap,
         normalMap: waterNormalMap,
         shininess: 100,
-        reflectivity: 0.5,
+        reflectivity: 1.0,
         wireframe: false
     });
     
     const terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
     terrain.receiveShadow = true;
+    
     
     const water = new THREE.Mesh(waterGeometry, waterMaterial);
     water.receiveShadow = true;
@@ -99,7 +201,7 @@ export function createTerrain(scene) {
 
     scene.add(terrain);
     scene.add(water);
-    return waterMaterial;
+    return { terrainMaterial, waterMaterial };
 }
 
 function resetUVs( object )

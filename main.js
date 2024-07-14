@@ -10,7 +10,7 @@ let TIME = "Day"
 
 // Initialize Scene
 const scene = new THREE.Scene();
-
+const textureLoader = new THREE.TextureLoader();
 
 const sky = new Sky();
 sky.scale.setScalar( 1000 );
@@ -42,7 +42,7 @@ let activeCamera = 0
 const cameras = [camera1, camera2, camera3, camera4, camera5, camera6]
 
 // Initialize Renderer
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({ antialias: true});
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.setSize( window.innerWidth, window.innerHeight );
@@ -70,27 +70,28 @@ function addLights() {
         const sunLight = new THREE.DirectionalLight(0xfff6e1, 0.8);
         sunLight.castShadow = true;
         sunLight.position.copy(new THREE.Vector3(1000,400,1000));
-
+        
         sunLight.shadow.mapSize.width = 8192;
         sunLight.shadow.mapSize.height = 8192;
         sunLight.shadow.bias = -0.0005;
         sunLight.shadow.normalBias = 0.05;
-    
+        
         sunLight.shadow.camera.far = 3000;
         sunLight.shadow.camera.left = -500;
         sunLight.shadow.camera.right = 500;
         sunLight.shadow.camera.top = 500;
         sunLight.shadow.camera.bottom = -500;
-
+        
         // const helper = new THREE.CameraHelper(sunLight.shadow.camera);
         // scene.add(helper);
-
+        
         scene.add(sunLight);
         scene.add(sunLight.target);
 
         const ambientLight = new THREE.AmbientLight(0x808080, 0.8);
         scene.add(ambientLight);
         sceneLights.push(sunLight, ambientLight)
+
     } else if (TIME == "Night") {
         const sunPosition = new THREE.Vector3().setFromSphericalCoords( 1, THREE.MathUtils.degToRad(180), THREE.MathUtils.degToRad( 40 ) );
 
@@ -128,7 +129,6 @@ const trailCurve = getTrailCurve(scene)
 const trainMaterial = new THREE.MeshStandardMaterial( {color: 0x900000 } );
 const trainSecondaryMaterial = new THREE.MeshStandardMaterial( {color: 0xccc200 } );
 const trainWheelBarEndMaterial = new THREE.MeshStandardMaterial( {color: 0x380000 } );
-const textureLoader = new THREE.TextureLoader();
 const wheelTexture = textureLoader.load('train_wheel.png');
 const trainWheelMaterial = new THREE.MeshStandardMaterial( {map: wheelTexture } ); 
 const trainWheelBarMaterial = new THREE.MeshStandardMaterial( {color: 0x888888 } ); 
@@ -380,7 +380,7 @@ scene.add(spotLight);
 train2.position.y += 0.75
 
 createTrees(scene, 8, new THREE.Vector3(-85, 0, -80), 25);
-createTrees(scene, 45, new THREE.Vector3(-30, 0, 60), 60);
+createTrees(scene, 30, new THREE.Vector3(-30, 0, 60), 40);
 createTrees(scene, 6, new THREE.Vector3(-55, 0, -140), 12);
 createTrees(scene, 11, new THREE.Vector3(125, 0, -100), 40);
 
@@ -628,10 +628,10 @@ function moveTrain() {
 
 }
 
-const waterMaterial = createTerrain(scene);
+addLights();
+const { terrainMaterial, waterMaterial } = await createTerrain(scene, sceneLights[0]);
 createTrail(scene);
 createTunnel(scene, new THREE.Vector3(110, 5, -126), new THREE.Vector3(0, Math.PI / 2, 0));
-addLights();
 
 function animateWater() {
     const time = performance.now() * 0.001;
