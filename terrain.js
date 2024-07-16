@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { getRailShape, getTrackShape, getTunnelShape } from './shapes';
-import CustomShaderMaterial from 'three-custom-shader-material/vanilla'
+import { Water } from 'three/examples/jsm/Addons.js';
 
 const GRASS_COLOR = 0x00e335
 const WATER_COLOR = 0x42a5b8
@@ -151,14 +151,14 @@ export async function createTerrain(scene, directionalLight) {
                 }
             });
             
-            const waterColorMap = loader.load('textures/Water_002_COLOR.jpg');
-            const waterDisplacementMap = loader.load('textures/Water_002_DISP.png');
-            const waterNormalMap = loader.load('textures/Water_002_NORM.jpg');
-            const waterAoMap = loader.load('textures/Water_002_OCC.jpg');
-            const waterSpecMap = loader.load('textures/Water_002_SPEC.jpg');
-            
-            waterColorMap.wrapS = THREE.RepeatWrapping;
-            waterColorMap.wrapT = THREE.RepeatWrapping;
+    const waterColorMap = loader.load('textures/Water_002_COLOR.jpg');
+    const waterDisplacementMap = loader.load('textures/Water_002_DISP.png');
+    const waterNormalMap = loader.load('textures/Water_002_NORM.jpg');
+    const waterAoMap = loader.load('textures/Water_002_OCC.jpg');
+    const waterSpecMap = loader.load('textures/Water_002_SPEC.jpg');
+    
+    waterColorMap.wrapS = THREE.RepeatWrapping;
+    waterColorMap.wrapT = THREE.RepeatWrapping;
     waterColorMap.repeat.set(25, 25);
 
     waterDisplacementMap.wrapS = THREE.RepeatWrapping;
@@ -186,6 +186,24 @@ export async function createTerrain(scene, directionalLight) {
         reflectivity: 1.0,
         wireframe: false
     });
+
+    const water2 = new Water(
+        waterGeometry,
+        {
+            textureWidth: 512,
+            textureHeight: 512,
+            waterNormals: new THREE.TextureLoader().load( 'textures/waternormals.jpg', function ( texture ) {
+
+                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+
+            } ),
+            sunDirection: new THREE.Vector3(),
+            sunColor: 0xffffff,
+            waterColor: 0x001e0f,
+            distortionScale: 3.7,
+            fog: scene.fog !== undefined,
+        }
+    );
     
     const terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
     terrain.receiveShadow = true;
@@ -196,12 +214,14 @@ export async function createTerrain(scene, directionalLight) {
     
     terrain.position.y = -14
     water.position.y = -5
+    water2.position.y = -4
     terrain.rotation.x = -Math.PI / 2
-    water.rotation.x = -Math.PI / 2
+    water.rotation.x = - Math.PI / 2;
+    water2.rotation.x = - Math.PI / 2;
 
     scene.add(terrain);
-    scene.add(water);
-    return { terrainMaterial, waterMaterial };
+    scene.add(water2);
+    return { terrainMaterial, waterMaterial, water2 };
 }
 
 function resetUVs( object )
@@ -508,6 +528,7 @@ export function getTrailCurve() {
     trailPoints.push(new THREE.Vector3(-120 * TRAIL_SCALE, 1, -40 * TRAIL_SCALE));
     trailPoints.push(new THREE.Vector3(-100 * TRAIL_SCALE, 1, -20 * TRAIL_SCALE));
     trailPoints.push(new THREE.Vector3(-50 * TRAIL_SCALE, 1, -20 * TRAIL_SCALE));
+    trailPoints.push(new THREE.Vector3(-20, 1, 0));
     trailPoints.push(new THREE.Vector3(-5, 1, 0));
     trailPoints.push(new THREE.Vector3(0, 1, 0));
     return new THREE.CatmullRomCurve3(trailPoints);

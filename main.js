@@ -51,77 +51,6 @@ document.body.appendChild( renderer.domElement );
 let trainSpeed = 0
 const sceneLights = []
 
-function addLights() {
-    // scene.background = new THREE.Color(TIME == "Day" ? 0xADD8E6 : TIME == "Night" ? 0x001F3F : 0x000000);
-    // const sunPosition = new THREE.Vector3().setFromSphericalCoords( 1, THREE.MathUtils.degToRad( TIME == "Day" ? 80 : 180 ), THREE.MathUtils.degToRad( 40 ) );
-
-    sky.material.uniforms.sunPosition.value = new THREE.Vector3(0,0,0);
-
-    sceneLights.forEach(light => {
-        scene.remove(light);
-    });
-    sceneLights.length = 0;
-
-    if (TIME == "Day") {
-
-        const sunPosition = new THREE.Vector3().setFromSphericalCoords( 1, THREE.MathUtils.degToRad(20), THREE.MathUtils.degToRad(40) );
-        sky.material.uniforms.sunPosition.value = sunPosition;
-
-        const sunLight = new THREE.DirectionalLight(0xfff6e1, 0.8);
-        sunLight.castShadow = true;
-        sunLight.position.copy(new THREE.Vector3(1000,400,1000));
-        
-        sunLight.shadow.mapSize.width = 8192;
-        sunLight.shadow.mapSize.height = 8192;
-        sunLight.shadow.bias = -0.0005;
-        sunLight.shadow.normalBias = 0.05;
-        
-        sunLight.shadow.camera.far = 3000;
-        sunLight.shadow.camera.left = -500;
-        sunLight.shadow.camera.right = 500;
-        sunLight.shadow.camera.top = 500;
-        sunLight.shadow.camera.bottom = -500;
-        
-        // const helper = new THREE.CameraHelper(sunLight.shadow.camera);
-        // scene.add(helper);
-        
-        scene.add(sunLight);
-        scene.add(sunLight.target);
-
-        const ambientLight = new THREE.AmbientLight(0x808080, 0.8);
-        scene.add(ambientLight);
-        sceneLights.push(sunLight, ambientLight)
-
-    } else if (TIME == "Night") {
-        const sunPosition = new THREE.Vector3().setFromSphericalCoords( 1, THREE.MathUtils.degToRad(180), THREE.MathUtils.degToRad( 40 ) );
-
-        sky.material.uniforms.sunPosition.value = sunPosition
-
-        const moonLight = new THREE.DirectionalLight(0x888888, 0.1);
-        moonLight.castShadow = true;
-        moonLight.position.copy(new THREE.Vector3(1000,400,1000));
-
-        moonLight.shadow.mapSize.width = 8192;
-        moonLight.shadow.mapSize.height = 8192;
-        moonLight.shadow.bias = -0.0005;
-        moonLight.shadow.normalBias = 0.05;
-    
-        moonLight.shadow.camera.far = 3000;
-        moonLight.shadow.camera.left = -500;
-        moonLight.shadow.camera.right = 500;
-        moonLight.shadow.camera.top = 500;
-        moonLight.shadow.camera.bottom = -500;
-        scene.add(moonLight);
-        scene.add(moonLight.target);
-
-
-        const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
-        scene.add(ambientLight);
-        sceneLights.push(moonLight, ambientLight)
-
-    }
-}
-
 createBridge(scene, new THREE.Vector3(70, -16, 1))
 
 const trailCurve = getTrailCurve(scene)
@@ -416,6 +345,7 @@ createLampPost(new THREE.Vector3(190, 5, -60))
 createLampPost(new THREE.Vector3(40, 5, -150))
 createLampPost(new THREE.Vector3(-140, 5, -150))
 createLampPost(new THREE.Vector3(-120, 5, -25))
+const { terrainMaterial, waterMaterial, water2 } = await createTerrain(scene, sceneLights[0]);
 
 function switchCamera(cameraIndex) {
     if (cameraIndex >= 0 && cameraIndex < cameras.length) {
@@ -432,6 +362,87 @@ let rotateLeft = false;
 let accelerate = false;
 let braking = false;
 
+function addLights() {
+    // scene.background = new THREE.Color(TIME == "Day" ? 0xADD8E6 : TIME == "Night" ? 0x001F3F : 0x000000);
+    // const sunPosition = new THREE.Vector3().setFromSphericalCoords( 1, THREE.MathUtils.degToRad( TIME == "Day" ? 80 : 180 ), THREE.MathUtils.degToRad( 40 ) );
+
+    sky.material.uniforms.sunPosition.value = new THREE.Vector3(0,0,0);
+
+    sceneLights.forEach(light => {
+        scene.remove(light);
+    });
+    sceneLights.length = 0;
+
+    if (TIME == "Day") {
+
+        const sunPosition = new THREE.Vector3().setFromSphericalCoords( 1, THREE.MathUtils.degToRad(88), THREE.MathUtils.degToRad(40) );
+        sky.material.uniforms.sunPosition.value = sunPosition;
+        sky.material.uniforms[ 'turbidity' ].value = 10;
+        sky.material.uniforms[ 'rayleigh' ].value = 2;
+        sky.material.uniforms[ 'mieCoefficient' ].value = 0.005;
+        sky.material.uniforms[ 'mieDirectionalG' ].value = 0.8;
+        water2.material.uniforms[ 'sunDirection' ].value.copy( sunPosition ).normalize();
+
+        const sunLight = new THREE.DirectionalLight(0xfff6e1, 0.8);
+        sunLight.castShadow = true;
+        sunLight.position.copy(new THREE.Vector3(1000,400,1000));
+        
+        sunLight.shadow.mapSize.width = 8192;
+        sunLight.shadow.mapSize.height = 8192;
+        sunLight.shadow.bias = -0.0005;
+        sunLight.shadow.normalBias = 0.05;
+        
+        sunLight.shadow.camera.far = 3000;
+        sunLight.shadow.camera.left = -500;
+        sunLight.shadow.camera.right = 500;
+        sunLight.shadow.camera.top = 500;
+        sunLight.shadow.camera.bottom = -500;
+        
+        // const helper = new THREE.CameraHelper(sunLight.shadow.camera);
+        // scene.add(helper);
+        scene.fog = new THREE.Fog( 0xcccccc, 150, 500 );
+        
+        scene.add(sunLight);
+        scene.add(sunLight.target);
+
+        const ambientLight = new THREE.AmbientLight(0x808080, 0.8);
+        scene.add(ambientLight);
+        sceneLights.push(sunLight, ambientLight)
+
+    } else if (TIME == "Night") {
+        const sunPosition = new THREE.Vector3().setFromSphericalCoords( 1, THREE.MathUtils.degToRad(180), THREE.MathUtils.degToRad( 40 ) );
+
+        sky.material.uniforms.sunPosition.value = sunPosition
+
+        water2.material.uniforms[ 'sunDirection' ].value.copy( sunPosition ).normalize();
+
+        const moonLight = new THREE.DirectionalLight(0x888888, 0.1);
+        moonLight.castShadow = true;
+        moonLight.position.copy(new THREE.Vector3(1000,400,1000));
+
+        moonLight.shadow.mapSize.width = 8192;
+        moonLight.shadow.mapSize.height = 8192;
+        moonLight.shadow.bias = -0.0005;
+        moonLight.shadow.normalBias = 0.05;
+    
+        moonLight.shadow.camera.far = 3000;
+        moonLight.shadow.camera.left = -500;
+        moonLight.shadow.camera.right = 500;
+        moonLight.shadow.camera.top = 500;
+        moonLight.shadow.camera.bottom = -500;
+        scene.add(moonLight);
+        scene.add(moonLight.target);
+
+        scene.fog = new THREE.Fog( 0x444444, 150, 500 );
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+        scene.add(ambientLight);
+        sceneLights.push(moonLight, ambientLight)
+
+    } else {
+        water2.material.uniforms[ 'sunDirection' ].value.copy( new THREE.Vector3(0,0,0) ).normalize();
+    }
+}
+
 function onKeyDown(event) {
     switch (event.code) {
         case 'KeyW':
@@ -445,7 +456,8 @@ function onKeyDown(event) {
             break;
         case 'KeyD':
             // moveRight = true;
-            TIME = (TIME === "Day") ? "Night" : (TIME === "Night") ? "NoLight" : "Day";
+            TIME = (TIME === "Day") ? "Night" : "Day";
+            // TIME = (TIME === "Day") ? "Night" : (TIME === "Night") ? "NoLight" : "Day";
             addLights();
             break;
         case 'KeyE':
@@ -629,7 +641,6 @@ function moveTrain() {
 }
 
 addLights();
-const { terrainMaterial, waterMaterial } = await createTerrain(scene, sceneLights[0]);
 createTrail(scene);
 createTunnel(scene, new THREE.Vector3(110, 5, -126), new THREE.Vector3(0, Math.PI / 2, 0));
 
@@ -645,11 +656,16 @@ function animateWater() {
     waterMaterial.normalMap.offset.y = time * WAVE_SPEED;
 }
 
+function animateWater2() {
+    water2.material.uniforms[ 'time' ].value += 1.0 / 60.0;
+}
 
 function animate() {
     requestAnimationFrame( animate );
     
-    animateWater()
+    // animateWater()
+
+    animateWater2()
 
 	moveTrain()
     
